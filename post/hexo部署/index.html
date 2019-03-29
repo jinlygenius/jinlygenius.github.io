@@ -8,17 +8,18 @@
   <link rel="dns-prefetch" href="http://ellasunspace.com">
   <title>hexo部署 git相关 | Ella&#39;s space</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct acc">
+  <meta name="description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g   hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct a">
+<meta name="keywords" content="hexo,git">
 <meta property="og:type" content="article">
 <meta property="og:title" content="hexo部署 git相关">
 <meta property="og:url" content="http://ellasunspace.com/post/hexo部署/index.html">
 <meta property="og:site_name" content="Ella&#39;s space">
-<meta property="og:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct acc">
+<meta property="og:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g   hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct a">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-29T05:59:47.425Z">
+<meta property="og:updated_time" content="2019-03-29T06:05:16.398Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hexo部署 git相关">
-<meta name="twitter:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct acc">
+<meta name="twitter:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g   hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct a">
   
     <link rel="alternative" href="/atom.xml" title="Ella&#39;s space" type="application/atom+xml">
   
@@ -191,9 +192,11 @@ var _hmt = _hmt || [];
       
         <p>今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。</p>
 <p>正常用命令</p>
-<p>hexo g</p>
-<p>hexo d</p>
-<p>然后报错</p>
+<pre><code>hexo g
+
+
+hexo d
+</code></pre><p>然后报错</p>
 <pre><code>Error: git@github.com: Permission denied (publickey).
 fatal: Could not read from remote repository.
 
@@ -203,26 +206,40 @@ and the repository exists.
 <ol>
 <li>先自查 public key</li>
 </ol>
-<p>ssh -vT git@github.com</p>
-<p>结果报错</p>
-<p>…<br>debug1: Trying private key: /Users/ella/.ssh/id_xmss<br>debug1: No more authentication methods to try.<br>git@github.com: Permission denied (publickey).</p>
-<ol>
-<li><p>去 github settings 里， SSH and GPG keys，新建 SSH key。</p>
-<pre><code>vim ~/.ssh/id_rsa.pub
-</code></pre></li>
+<pre><code>ssh -vT git@github.com
+</code></pre><p>结果报错</p>
+<pre><code>...
+debug1: Trying private key: /Users/ella/.ssh/id_xmss
+debug1: No more authentication methods to try.
+git@github.com: Permission denied (publickey).
+</code></pre><ol>
+<li>去 github settings 里， SSH and GPG keys，新建 SSH key。</li>
 </ol>
-<p>把内容粘贴进github new ssh key 里，保存。</p>
+<pre><code>vim ~/.ssh/id_rsa.pub
+</code></pre><p>把内容粘贴进github new ssh key 里，保存。</p>
 <ol>
+<li>检查 “_config.yml” 文件</li>
+</ol>
+<pre><code>deploy:
+  type: git
+  repository: git@github.com:jinlygenius/jinlygenius.github.io.git
+  branch: master
+</code></pre><ol>
 <li>重新测试</li>
 </ol>
-<p>ssh -vT git@github.com</p>
-<p>这回返回成功了</p>
-<p>…<br>Hi jinlygenius! You’ve successfully authenticated, but GitHub does not provide shell access.<br>debug1: channel 0: free: client-session, nchannels 1<br>Transferred: sent 2684, received 2228 bytes, in 0.8 seconds<br>Bytes per second: sent 3305.6, received 2744.0<br>debug1: Exit status 1</p>
-<ol>
+<pre><code>ssh -vT git@github.com
+</code></pre><p>这回返回成功了</p>
+<pre><code>...
+Hi jinlygenius! You&apos;ve successfully authenticated, but GitHub does not provide shell access.
+debug1: channel 0: free: client-session, nchannels 1
+Transferred: sent 2684, received 2228 bytes, in 0.8 seconds
+Bytes per second: sent 3305.6, received 2744.0
+debug1: Exit status 1
+</code></pre><ol>
 <li>还是部署出错，需要把 .deploy_git 彻底删了</li>
 </ol>
-<p>rm -rf .deploy_git</p>
-<ol>
+<pre><code>rm -rf .deploy_git
+</code></pre><ol>
 <li>终于部署成功了~~ T_T</li>
 </ol>
 
@@ -264,6 +281,21 @@ and the repository exists.
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">hexo</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -478,6 +510,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">hexo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">git</a>
               </li>
              
               <li class="article-tag-list-item">
