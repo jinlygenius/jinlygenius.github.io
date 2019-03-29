@@ -167,6 +167,104 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-hexo部署" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/hexo部署/">hexo部署 git相关</a>
+    </h1>
+  
+
+        
+        <a href="/post/hexo部署/" class="archive-article-date">
+  	<time datetime="2019-03-29T05:53:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。</p>
+<p>正常用命令</p>
+<p>hexo g</p>
+<p>hexo d</p>
+<p>然后报错</p>
+<pre><code>Error: git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+</code></pre><p>记录一下解决方法：</p>
+<ol>
+<li>先自查 public key</li>
+</ol>
+<p>ssh -vT git@github.com</p>
+<p>结果报错</p>
+<p>…<br>debug1: Trying private key: /Users/ella/.ssh/id_xmss<br>debug1: No more authentication methods to try.<br>git@github.com: Permission denied (publickey).</p>
+<ol>
+<li><p>去 github settings 里， SSH and GPG keys，新建 SSH key。</p>
+<pre><code>vim ~/.ssh/id_rsa.pub
+</code></pre></li>
+</ol>
+<p>把内容粘贴进github new ssh key 里，保存。</p>
+<ol>
+<li>重新测试</li>
+</ol>
+<p>ssh -vT git@github.com</p>
+<p>这回返回成功了</p>
+<p>…<br>Hi jinlygenius! You’ve successfully authenticated, but GitHub does not provide shell access.<br>debug1: channel 0: free: client-session, nchannels 1<br>Transferred: sent 2684, received 2228 bytes, in 0.8 seconds<br>Bytes per second: sent 3305.6, received 2744.0<br>debug1: Exit status 1</p>
+<ol>
+<li>还是部署出错，需要把 .deploy_git 彻底删了</li>
+</ol>
+<p>rm -rf .deploy_git</p>
+<ol>
+<li>终于部署成功了~~ T_T</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/hexo部署/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-ml-linear-regression" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -977,11 +1075,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
+                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
+                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
             
             <div class="clearfix"></div>
