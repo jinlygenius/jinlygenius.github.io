@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="Ella&#39;s space">
 <meta property="og:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct acc">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-29T06:06:31.988Z">
+<meta property="og:updated_time" content="2019-03-29T06:15:01.748Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hexo部署 git相关">
 <meta name="twitter:description" content="今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。 正常用命令 hexo g hexo d 然后报错 Error: git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.  Please make sure you have the correct acc">
@@ -201,31 +201,19 @@ fatal: Could not read from remote repository.
 Please make sure you have the correct access rights
 and the repository exists.
 </code></pre><p>记录一下解决方法：</p>
-<ol>
-<li>先自查 public key</li>
-</ol>
-<pre><code>ssh -vT git@github.com
+<h5 id="1-先自查-public-key"><a href="#1-先自查-public-key" class="headerlink" title="1. 先自查 public key"></a>1. 先自查 public key</h5><pre><code>ssh -vT git@github.com
 </code></pre><p>结果报错</p>
 <pre><code>...
 debug1: Trying private key: /Users/ella/.ssh/id_xmss
 debug1: No more authentication methods to try.
 git@github.com: Permission denied (publickey).
-</code></pre><ol>
-<li>去 github settings 里， SSH and GPG keys，新建 SSH key。</li>
-</ol>
-<pre><code>vim ~/.ssh/id_rsa.pub
+</code></pre><h5 id="2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key"><a href="#2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key" class="headerlink" title="2. 去 github settings 里， SSH and GPG keys，新建 SSH key"></a>2. 去 github settings 里， SSH and GPG keys，新建 SSH key</h5><pre><code>vim ~/.ssh/id_rsa.pub
 </code></pre><p>把内容粘贴进github new ssh key 里，保存。</p>
-<ol>
-<li>检查 “_config.yml” 文件</li>
-</ol>
-<pre><code>deploy:
+<h5 id="3-检查-“-config-yml”-文件"><a href="#3-检查-“-config-yml”-文件" class="headerlink" title="3. 检查 “_config.yml” 文件"></a>3. 检查 “_config.yml” 文件</h5><pre><code>deploy:
   type: git
   repository: git@github.com:jinlygenius/jinlygenius.github.io.git
   branch: master
-</code></pre><ol>
-<li>重新测试</li>
-</ol>
-<pre><code>ssh -vT git@github.com
+</code></pre><h5 id="4-重新测试"><a href="#4-重新测试" class="headerlink" title="4. 重新测试"></a>4. 重新测试</h5><pre><code>ssh -vT git@github.com
 </code></pre><p>这回返回成功了</p>
 <pre><code>...
 Hi jinlygenius! You&apos;ve successfully authenticated, but GitHub does not provide shell access.
@@ -233,14 +221,8 @@ debug1: channel 0: free: client-session, nchannels 1
 Transferred: sent 2684, received 2228 bytes, in 0.8 seconds
 Bytes per second: sent 3305.6, received 2744.0
 debug1: Exit status 1
-</code></pre><ol>
-<li>还是部署出错，需要把 .deploy_git 彻底删了</li>
-</ol>
-<pre><code>rm -rf .deploy_git
-</code></pre><ol>
-<li>终于部署成功了~~ T_T</li>
-</ol>
-
+</code></pre><h5 id="5-还是部署出错，需要把-deploy-git-彻底删了"><a href="#5-还是部署出错，需要把-deploy-git-彻底删了" class="headerlink" title="5. 还是部署出错，需要把 .deploy_git 彻底删了"></a>5. 还是部署出错，需要把 .deploy_git 彻底删了</h5><pre><code>rm -rf .deploy_git
+</code></pre><h5 id="6-终于部署成功了-T-T"><a href="#6-终于部署成功了-T-T" class="headerlink" title="6. 终于部署成功了~~ T_T"></a>6. 终于部署成功了~~ T_T</h5>
       
 
       
@@ -499,6 +481,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">celery</a>
               </li>
              
@@ -515,15 +501,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
             
             <div class="clearfix"></div>
