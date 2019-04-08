@@ -6,15 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://ellasunspace.com">
-  <title>Tag: 失眠 | Ella&#39;s space</title>
+  <title>MySQL数据库隔离级别 | Ella&#39;s space</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Ella&#39;s space">
-<meta property="og:url" content="http://ellasunspace.com/tags/失眠/index.html">
+  <meta name="description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
+<meta name="keywords" content="MySQL,ACID">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL数据库隔离级别">
+<meta property="og:url" content="http://ellasunspace.com/post/database-isolations/index.html">
 <meta property="og:site_name" content="Ella&#39;s space">
+<meta property="og:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-04-08T08:54:04.506Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Ella&#39;s space">
+<meta name="twitter:title" content="MySQL数据库隔离级别">
+<meta name="twitter:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
   
     <link rel="alternative" href="/atom.xml" title="Ella&#39;s space" type="application/atom+xml">
   
@@ -155,60 +160,224 @@ var _hmt = _hmt || [];
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-database-isolations" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2017" class="archive-year">2017</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/post/sleep/" class="archive-article-date">
-  	<time datetime="2017-07-18T06:49:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-18</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/post/sleep/">聊聊失眠这件小事</a>
+    <h1 class="article-title" itemprop="name">
+      MySQL数据库隔离级别
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/post/database-isolations/" class="archive-article-date">
+  	<time datetime="2019-04-08T07:57:59.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-04-08</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。</p>
+<p>总结一下相关问题</p>
+<ul>
+<li>丢失或覆盖更新（幻读）</li>
+<li>未确认的相关性（脏读）</li>
+<li>不一致的分析（非重复读）</li>
+</ul>
+<p>MySQL有以下四种隔离级别</p>
+<h4 id="Read-Uncommitted"><a href="#Read-Uncommitted" class="headerlink" title="Read Uncommitted"></a>Read Uncommitted</h4><p>这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：</p>
+<ul>
+<li>事务A在更新数据，比如 update count from 10 to 20</li>
+<li>事务B在A刚刚更新的时候读入了数据，读入 count = 20</li>
+<li>事务A在提交事务过程中出错，数据回滚，count is back to 10</li>
+</ul>
+<p>这样就造成了脏读 dirty read</p>
+<h4 id="Read-Committed"><a href="#Read-Committed" class="headerlink" title="Read Committed"></a>Read Committed</h4><p>为了避免上述情况，可以让B只能读入已经commit过的数据。这样如果事务A还没有commit，它涉及到的数据变化B是看不到的。这种隔离方式有效避免了脏读。</p>
+<p>然后又有情况发生了：</p>
+<ul>
+<li>事务A需要多次读入同一数据。第一次读count=10</li>
+<li>事务B更新 count from 10 to 20</li>
+<li>事务A继续读，发现count变成20了。数据不能一致。</li>
+</ul>
+<p>这就造成了不可重复读 non-repeatable read</p>
+<h4 id="Repeatable-Read"><a href="#Repeatable-Read" class="headerlink" title="Repeatable Read"></a>Repeatable Read</h4><p>为了避免上述情况，让A在commit之前，读入的数据（涉及到的行row）都是相同的数据快照(snapshot)（第一次select之后，创建快照，之后select都来自这个快照），这样就隔离了其他事务对涉及数据的任何操作。这个隔离级别已经相对较高了，也是MySQL默认使用的隔离级别。相对来说开销也会比较大，性能会降低。</p>
+<p>然而还是有情况发生：</p>
+<ul>
+<li>事务A在commit前读入的行数据本身再次read是一致的</li>
+<li>事务B insert 了一条数据 count = 10</li>
+<li>事务A批量更新了所选中的行数据（第一次读入的数据快照），set all counts to 20，commit后事务结束</li>
+<li>事务A结束后，发现count不仅多了一行，还出现了10这个已经改掉的值</li>
+</ul>
+<p>这就造成了幻读 phantom read</p>
+<h4 id="Serializable"><a href="#Serializable" class="headerlink" title="Serializable"></a>Serializable</h4><p>终极办法，完全隔离各个事务之间的影响。基于 Repeatable Read 的基础之上，凡是涉及到的数据，在本事务commit之前，其他事务都不能对相关数据做操作，知道本事务结束。</p>
+<p>这是最高隔离级别，开销也最大。</p>
+<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><p><a href="https://mydbops.wordpress.com/2018/06/22/back-to-basics-isolation-levels-in-mysql/" target="_blank" rel="external">https://mydbops.wordpress.com/2018/06/22/back-to-basics-isolation-levels-in-mysql/</a><br><a href="https://blog.csdn.net/d8111/article/details/2595635" target="_blank" rel="external">https://blog.csdn.net/d8111/article/details/2595635</a></p>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>拿去买零食！<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/alipay.jpeg">
+                      <span class="reward-type">支付宝</span>
+                    </div>
+                    
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/wechat_pay.jpeg">
+                      <span class="reward-type">微信</span>
+                    </div>
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">失眠</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">ACID</a>
         		</li>
       		
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="http://s.jiathis.com/qrcode.php?url=http://ellasunspace.com/post/database-isolations/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
   
   
-    </div></section>
+    <a href="/post/optimize-sql/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">SQL 调优</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+  
+  
+  
+  <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+<script>
+  var cloudTieConfig = {
+    url: "http://ellasunspace.com/post/database-isolations/", 
+    sourceId: "database-isolations",
+    productKey: "c9655e7e0d6646b08e5cd3832d66750f",
+    target: "cloud-tie-wrapper"
+  };
+</script>
+<script src="//img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script>
   
 
-    
+  
+
+  
 
 
           </div>
@@ -231,9 +400,9 @@ var _hmt = _hmt || [];
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
-		isTag: true,
+		isTag: false,
 		isCategory: false,
 		open_in_new: false,
 		toc_hide_index: true,
