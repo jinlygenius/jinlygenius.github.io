@@ -9,14 +9,14 @@
   <title>MySQL数据库隔离级别 | Ella&#39;s space</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
-<meta name="keywords" content="MySQL,ACID">
+<meta name="keywords" content="mysql,acid">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL数据库隔离级别">
 <meta property="og:url" content="http://ellasunspace.com/post/database-isolations/index.html">
 <meta property="og:site_name" content="Ella&#39;s space">
 <meta property="og:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-08T08:54:04.506Z">
+<meta property="og:updated_time" content="2019-04-08T08:56:10.856Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MySQL数据库隔离级别">
 <meta name="twitter:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 总结一下相关问题  丢失或覆盖更新（幻读） 未确认的相关性（脏读） 不一致的分析（非重复读）  MySQL有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务">
@@ -259,11 +259,11 @@ var _hmt = _hmt || [];
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">mysql</a>
         		</li>
       		 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">ACID</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">acid</a>
         		</li>
       		
 		</ul>
@@ -462,14 +462,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">ACID</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
@@ -479,6 +471,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">acid</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -498,7 +498,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">SQL</a>
+                <a href="javascript:void(0)" class="js-tag color4">sql</a>
               </li>
              
               <li class="article-tag-list-item">
