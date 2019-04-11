@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://ellasunspace.com">
   <title>MySQL数据库隔离级别 | Ella&#39;s space</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回滚，count is back">
+  <meta name="description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。MySQL一共有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回">
 <meta name="keywords" content="mysql,acid">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL数据库隔离级别">
 <meta property="og:url" content="http://ellasunspace.com/post/database-isolations/index.html">
 <meta property="og:site_name" content="Ella&#39;s space">
-<meta property="og:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回滚，count is back">
+<meta property="og:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。MySQL一共有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-08T09:57:41.381Z">
+<meta property="og:updated_time" content="2019-04-11T07:17:37.751Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MySQL数据库隔离级别">
-<meta name="twitter:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回滚，count is back">
+<meta name="twitter:description" content="ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。MySQL一共有以下四种隔离级别 Read Uncommitted这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：  事务A在更新数据，比如 update count from 10 to 20 事务B在A刚刚更新的时候读入了数据，读入 count = 20 事务A在提交事务过程中出错，数据回">
   
     <link rel="alternative" href="/atom.xml" title="Ella&#39;s space" type="application/atom+xml">
   
@@ -180,7 +180,7 @@ var _hmt = _hmt || [];
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。</p>
+        <p>ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。MySQL一共有以下四种隔离级别</p>
 <h4 id="Read-Uncommitted"><a href="#Read-Uncommitted" class="headerlink" title="Read Uncommitted"></a>Read Uncommitted</h4><p>这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：</p>
 <ul>
 <li>事务A在更新数据，比如 update count from 10 to 20</li>
@@ -326,6 +326,15 @@ var _hmt = _hmt || [];
   
 <nav id="article-nav">
   
+    <a href="/post/jwt/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          JWT 详解
+        
+      </div>
+    </a>
+  
   
     <a href="/post/optimize-sql/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">SQL 调优</div>
@@ -455,31 +464,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">hexo</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">git</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">sql</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">mysql</a>
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">acid</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">cache</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -491,11 +484,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">hexo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">git</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">sql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">acid</a>
+                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
             
             <div class="clearfix"></div>
