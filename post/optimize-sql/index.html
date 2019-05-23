@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="Ella&#39;s space">
 <meta property="og:description" content="这两天公司一直在招人，CTO经常问面试者的问题：怎么sql调优？之后大家讨论，感觉sql调优的方法太多了，这里总结一下 因为我们主要用MySQL（InnoDB），先砸一下MySQL的官方文档 https://dev.mysql.com/doc/refman/8.0/en/optimization.html 1. 索引相关 索引是面试者最容易想到的答案。我们都知道，字段加了索引以后，在 where,">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-11T13:58:03.606Z">
+<meta property="og:updated_time" content="2019-04-11T14:03:07.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SQL 调优">
 <meta name="twitter:description" content="这两天公司一直在招人，CTO经常问面试者的问题：怎么sql调优？之后大家讨论，感觉sql调优的方法太多了，这里总结一下 因为我们主要用MySQL（InnoDB），先砸一下MySQL的官方文档 https://dev.mysql.com/doc/refman/8.0/en/optimization.html 1. 索引相关 索引是面试者最容易想到的答案。我们都知道，字段加了索引以后，在 where,">
@@ -263,8 +263,8 @@ var _hmt = _hmt || [];
 </li>
 <li><p>queryset很大的时候，当需要轮询处理，应该使用iterator，否则全部加载很消耗内存</p>
 </li>
-<li>不用len(queryset)，用 queryset.count()</li>
-<li>if some_queryset.exists(): 比 if some_queryset: 性能好很多，能用exists()就多用. 这些原理都和上述原生sql要注意的地方类似</li>
+<li>不要用len(queryset)，应该用 queryset.count()</li>
+<li>if some_queryset.exists() 比 if some_queryset 性能好很多，能用exists()就多用. 这些原理都和上述原生sql要注意的地方类似</li>
 </ul>
 <h5 id="参考文献-文章"><a href="#参考文献-文章" class="headerlink" title="参考文献/文章"></a>参考文献/文章</h5><p><a href="https://www.cnblogs.com/yunfeifei/p/3850440.html" target="_blank" rel="external">https://www.cnblogs.com/yunfeifei/p/3850440.html</a><br><a href="https://blog.csdn.net/dev_csdn/article/details/78721426" target="_blank" rel="external">https://blog.csdn.net/dev_csdn/article/details/78721426</a><br><a href="https://zhuanlan.zhihu.com/p/39038788" target="_blank" rel="external">https://zhuanlan.zhihu.com/p/39038788</a></p>
 
@@ -547,6 +547,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">hexo</a>
               </li>
              
@@ -555,7 +559,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -564,10 +568,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">失眠</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
             
             <div class="clearfix"></div>
@@ -691,6 +691,13 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
     </div>
 
 </div>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-4731457606588099",
+    enable_page_level_ads: true
+  });
+</script>
   </div>
 </body>
 </html>
