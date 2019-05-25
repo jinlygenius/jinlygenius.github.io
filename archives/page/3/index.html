@@ -29,6 +29,27 @@
     #container.show {
       background: linear-gradient(200deg,#a0cfe4,#e8c37e);
     }
+    .goolge-ads-horizontal {
+      max-width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid black;
+    }
+
+    .google-ads-vertical {
+      margin-top: 200px;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid black;
+    }
+
+
+    @media screen and (max-width: 800px) {
+      .google-ads-vertical {
+        display: none;
+      }
+    }
   </style>
   
 <!-- Google Analytics -->
@@ -109,21 +130,22 @@ var _hmt = _hmt || [];
 		        
 			</div>
 		</nav>
-	</header>		
+	</header>
 </div>
-<div>
-	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- vertical -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-4731457606588099"
-     data-ad-slot="7161700453"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<div class="google-ads-vertical">
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <!-- vertical -->
+  <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4731457606588099"
+      data-ad-slot="7161700453"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 </div>
+
 
     </div>
     <div class="mid-col" q-class="show:isShow,hide:isShow|isFalse">
@@ -227,20 +249,22 @@ var _hmt = _hmt || [];
 
 
           </div>
+
         </div>
-      </div>
-      <div>
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- horizontal -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-4731457606588099"
-     data-ad-slot="9380669689"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+        <div class="goolge-ads-horizontal">
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <!-- horizontal -->
+  <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-4731457606588099"
+      data-ad-slot="9380669689"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
+
       </div>
       <footer id="footer">
   <div class="outer">
@@ -321,18 +345,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">django</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">celery</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">redis</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">mysql</a>
               </li>
              
@@ -341,7 +353,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">django</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">celery</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
               <li class="article-tag-list-item">
