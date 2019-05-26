@@ -111,10 +111,11 @@ smart_menu:
   # friends: '友链'
   aboutme: '关于我'
 
-# friends:
-#   剑姬 —— aoao: http://www.sunjian.site/
-#   璐璐。。。: http://tech.kevg.info/
-#   超超~: http://liuchao.store/
-#   这个其实不是友链了，算是我的收藏: http://mednoter.com/  
+friends:
+  # 剑姬 —— aoao: http://www.sunjian.site/
+  # 璐璐。。。: http://tech.kevg.info/
+  超超~: http://liuchao.store/
+  # 这个其实不是友链了，算是我的收藏: http://mednoter.com/  
+  Ginnko: https://ginnko.github.io/
 
 aboutme: 天才大好人
