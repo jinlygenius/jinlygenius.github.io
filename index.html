@@ -203,27 +203,47 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-jwt" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-consistent-hashing" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/post/jwt/">JWT 详解</a>
+      <a class="article-title" href="/post/consistent-hashing/">一致性哈希</a>
     </h1>
   
 
         
-        <a href="/post/jwt/" class="archive-article-date">
-  	<time datetime="2019-04-11T07:32:26.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-04-11</time>
+        <a href="/post/consistent-hashing/" class="archive-article-date">
+  	<time datetime="2019-06-26T13:42:45.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-26</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p>之前听说过一致性哈希这个概念，但是没理解应用场景。最近重新看分布式系统才发现，其实很早以前就思考过一个分布式缓存系统的问题：当有多个缓存服务器，如果用户请求的响应内容缓存在缓存服务器A，但是这次请求访问到了缓存服务器B，怎么办呢？要保证所有缓存服务器都能命中，岂不是所有数据都要冗余一份么。</p>
+<p>当时的疑问卡在那儿，就没继续想。现在看到一致性哈希恍然大悟，一致性哈希正是可以解决分布式缓存的问题。</p>
+<h5 id="环形构想"><a href="#环形构想" class="headerlink" title="环形构想"></a>环形构想</h5><p>1.设计一个环形结构，分隔成 2^32=16384 份（slots），来源任何一个key值（暂且简单叫key值，实际上是一个用户请求内容），把key哈希，然后把哈希值对16384取模，找到这个模值在环形上的位置（slot）。如下图</p>
+<p><img src="/img/consistent-hashing/1.png" alt="" title="环形结构"></p>
+<p>2.同样的方式，把缓存浏览器的ip地址（暂时简单叫 node）也都哈希，然后把哈希值对16384取模，也找到这个模值在环形上的位置（slot）。如下图</p>
+<p><img src="/img/consistent-hashing/2.png" alt="" title="环形结构"></p>
+<p>3.key命中node的方式是，延环形架构顺时针找到最近的node，即这个请求就访问到这个缓存服务器。</p>
+<p><img src="/img/consistent-hashing/3.png" alt="" title="缓存命中"></p>
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h4><p>这样做的好处显而易见，尤其是这种设计的单调性。当然还有一些其他特性</p>
+<ul>
+<li>单调性（Monotonicity）：增加缓存服务器或者删除缓存服务器（node）的时候，只会影响到下一个或上一个node（所有数据都会写入顺时针的最近缓存分区），而不会影响到其他缓存节点。这比起普通哈希的方式优化了很多。</li>
+<li>平衡性（Balance）：哈希算法的特性，能使keys尽可能平衡分部再各nodes</li>
+<li>降低分散性（Spread）：记得开篇的问题么，如果不用哈希，几乎做不到让相同的请求命中同一缓存节点，甚至需要各节点冗余缓存数据。而哈希可以使得数据集中存在特定缓存节点，而且请求可以相应命中</li>
+<li>降低负载（Load）：和上述分散性类似，既然可以做到不再冗余数据，相应的负载也就降低了</li>
+</ul>
+<h4 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h4><p>大家看到这里已经会发现了，那如果缓存节点的ip哈希映射到环形结构的时候，分布恰好非常不均匀，从而导致大量数据都映射在了某几个节点上，怎么办呢？</p>
+<p><img src="/img/consistent-hashing/4.png" alt="" title="节点ip分布不均匀"></p>
+<p>解决办法是，我们可以根据每个真实的缓存节点ip，创造一些与之对应的虚拟ip，也加入环形，使得数据分配到各真实缓存节点ip的时候基本是均衡的。</p>
+<p><img src="/img/consistent-hashing/5.png" alt="" title="虚拟节点"></p>
+<p>参考文献：<br><a href="https://blog.csdn.net/cywosp/article/details/23397179" target="_blank" rel="external">https://blog.csdn.net/cywosp/article/details/23397179</a><br><a href="https://www.jianshu.com/p/49e3fbf41b9b" target="_blank" rel="external">https://www.jianshu.com/p/49e3fbf41b9b</a></p>
+
       
 
       
@@ -231,22 +251,11 @@ var _hmt = _hmt || [];
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">jwt</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/post/jwt/">展开全文 >></a>
+          <a class="article-more-a" href="/post/consistent-hashing/">展开全文 >></a>
         </p>
       
 
@@ -276,54 +285,297 @@ var _hmt = _hmt || [];
 
 
   
-    <article id="post-database-isolations" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-cache-microservice" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/post/database-isolations/">MySQL数据库隔离级别</a>
+      <a class="article-title" href="/post/cache-microservice/">缓存架构设计</a>
     </h1>
   
 
         
-        <a href="/post/database-isolations/" class="archive-article-date">
-  	<time datetime="2019-04-08T07:57:59.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-04-08</time>
+        <a href="/post/cache-microservice/" class="archive-article-date">
+  	<time datetime="2019-06-13T05:07:44.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-13</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>ACID作为数据库（事务）特性大家熟知。今天想认真总结一下 I - isolation 隔离性。MySQL一共有以下四种隔离级别</p>
-<h4 id="Read-Uncommitted"><a href="#Read-Uncommitted" class="headerlink" title="Read Uncommitted"></a>Read Uncommitted</h4><p>这是最弱的隔离级别——可以理解为没有任何隔离。情况发生在：</p>
-<ul>
-<li>事务A在更新数据，比如 update count from 10 to 20</li>
-<li>事务B在A刚刚更新的时候读入了数据，读入 count = 20</li>
-<li>事务A在提交事务过程中出错，数据回滚，count is back to 10</li>
-</ul>
-<p>这样就造成了脏读 dirty read</p>
-<h4 id="Read-Committed"><a href="#Read-Committed" class="headerlink" title="Read Committed"></a>Read Committed</h4><p>为了避免上述情况，可以让B只能读入已经commit过的数据。这样如果事务A还没有commit，它涉及到的数据变化B是看不到的。这种隔离方式有效避免了脏读。</p>
-<p>然后又有情况发生了：</p>
-<ul>
-<li>事务A需要多次读入同一数据。第一次读count=10</li>
-<li>事务B更新 count from 10 to 20</li>
-<li>事务A继续读，发现count变成20了。数据不能一致。</li>
-</ul>
-<p>这就造成了不可重复读 non-repeatable read</p>
-<h4 id="Repeatable-Read"><a href="#Repeatable-Read" class="headerlink" title="Repeatable Read"></a>Repeatable Read</h4><p>为了避免上述情况，让A在commit之前，读入的数据（涉及到的行row）都是相同的数据快照(snapshot)（第一次select之后，创建快照，之后select都来自这个快照），这样就隔离了其他事务对涉及数据的任何操作。这个隔离级别已经相对较高了，也是MySQL默认使用的隔离级别。相对来说开销也会比较大，性能会降低。</p>
-<p>然而还是有情况发生：</p>
-<ul>
-<li>事务A在commit前读入的行数据本身再次read是一致的</li>
-<li>事务B insert 了一条数据 count = 10</li>
-<li>事务A批量更新了所选中的行数据（第一次读入的数据快照），set all counts to 20，commit后事务结束</li>
-<li>事务A结束后，发现count不仅多了一行，还出现了10这个已经改掉的值</li>
-</ul>
-<p>这就造成了幻读 phantom read</p>
-<h4 id="Serializable"><a href="#Serializable" class="headerlink" title="Serializable"></a>Serializable</h4><p>终极办法，完全隔离各个事务之间的影响。基于 Repeatable Read 的基础之上，凡是涉及到的数据，在本事务commit之前，其他事务都不能对相关数据做操作，知道本事务结束。</p>
-<p>这是最高隔离级别，开销也最大。</p>
-<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><p><a href="https://mydbops.wordpress.com/2018/06/22/back-to-basics-isolation-levels-in-mysql/" target="_blank" rel="external">https://mydbops.wordpress.com/2018/06/22/back-to-basics-isolation-levels-in-mysql/</a></p>
+        <p><a href="https://www.cnblogs.com/HigginCui/p/10450781.html" target="_blank" rel="external">https://www.cnblogs.com/HigginCui/p/10450781.html</a><br><a href="https://www.cnblogs.com/mylanqiu/p/9753259.html" target="_blank" rel="external">https://www.cnblogs.com/mylanqiu/p/9753259.html</a><br><a href="https://www.cnblogs.com/flying607/p/8257035.html" target="_blank" rel="external">https://www.cnblogs.com/flying607/p/8257035.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/cache-microservice/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-python3-multiextends" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/python3-multiextends/">python3-multiextends</a>
+    </h1>
+  
+
+        
+        <a href="/post/python3-multiextends/" class="archive-article-date">
+  	<time datetime="2019-06-05T09:23:41.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>class P1(object):<br>    def foo(self):<br>        print(‘p1-foo’)</p>
+<p>class P2(object):<br>    def foo(self):<br>        print(‘p2-foo’)</p>
+<pre><code>def bar(self):
+    print(&apos;p2-bar&apos;)
+</code></pre><p>class C1 (P1,P2):<br>    pass</p>
+<p>class C2 (P1,P2):<br>    def bar(self):<br>        print(‘C2-bar’)</p>
+<pre><code>def foo(self):
+    print(&apos;C2-foo&apos;)
+</code></pre><p>class D(C1,C2):<br>     pass</p>
+<blockquote>
+<blockquote>
+<p>&gt;</p>
+<blockquote>
+<p>d=D()<br>d.foo()<br>C2-foo</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/python3-multiextends/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-python-metaclass" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/python-metaclass/">python-metaclass</a>
+    </h1>
+  
+
+        
+        <a href="/post/python-metaclass/" class="archive-article-date">
+  	<time datetime="2019-06-05T02:45:26.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://realpython.com/python-metaclasses/" target="_blank" rel="external">https://realpython.com/python-metaclasses/</a><br><a href="https://docs.python.org/3/library/functions.html#type" target="_blank" rel="external">https://docs.python.org/3/library/functions.html#type</a><br><a href="https://www.cnblogs.com/tkqasn/p/6524879.html" target="_blank" rel="external">https://www.cnblogs.com/tkqasn/p/6524879.html</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">➜  ~ python3</div><div class="line">Python 3.7.3 (default, Mar 27 2019, 09:23:15)</div><div class="line">[Clang 10.0.1 (clang-1001.0.46.3)] on darwin</div><div class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> or <span class="string">"license"</span> <span class="keyword">for</span> more information.</div><div class="line">&gt;&gt;&gt; Test = <span class="built_in">type</span>(<span class="string">'Test'</span>,(),&#123;<span class="string">'bar'</span>:True&#125;)</div><div class="line">&gt;&gt;&gt; Test</div><div class="line">&lt;class <span class="string">'__main__.Test'</span>&gt;</div><div class="line">&gt;&gt;&gt; Test.bar</div><div class="line">True</div><div class="line">&gt;&gt;&gt; def echo_bar(self):</div><div class="line">...     <span class="built_in">print</span>(self.bar)</div><div class="line">...</div><div class="line">&gt;&gt;&gt; FooChild = <span class="built_in">type</span>(<span class="string">'FooChild'</span>,(Test,),&#123;<span class="string">'echo_bar'</span>: echo_bar&#125;)</div><div class="line">&gt;&gt;&gt; aaa = FooChild()</div><div class="line">&gt;&gt;&gt; aaa.echo_bar()</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'echo_bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; FooChild.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; FooChild.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb = FooChild()</div><div class="line">&gt;&gt;&gt; bbb.__class__</div><div class="line">&lt;class <span class="string">'__main__.FooChild'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; def my_meta_class(future_class_name, future_class_parents, future_class_attr):</div><div class="line">...     attrs = ((name, value) <span class="keyword">for</span> name, value <span class="keyword">in</span> future_class_attr.items() <span class="keyword">if</span> not name.startswith(<span class="string">'__'</span>))</div><div class="line">...     uppercase_attr = dict((name.upper(), value) <span class="keyword">for</span> name, value <span class="keyword">in</span> attrs)</div><div class="line">...     <span class="built_in">return</span> <span class="built_in">type</span>(future_class_name, future_class_parents, uppercase_attr)</div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; class FOO(object):</div><div class="line">...     __metaclass__ = my_meta_class</div><div class="line">...     bar = <span class="string">'bar'</span></div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; dir(FOO)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; foo = FOO()</div><div class="line">&gt;&gt;&gt; dir(foo)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/python-metaclass/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-CAP-and-BASE" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/CAP-and-BASE/">CAP-and-BASE</a>
+    </h1>
+  
+
+        
+        <a href="/post/CAP-and-BASE/" class="archive-article-date">
+  	<time datetime="2019-06-04T05:22:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://www.ruanyifeng.com/blog/2018/07/cap.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2018/07/cap.html</a><br><a href="https://www.cnblogs.com/toov5/p/9998395.html" target="_blank" rel="external">https://www.cnblogs.com/toov5/p/9998395.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/CAP-and-BASE/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-io-multiplexing" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/io-multiplexing/">IO多路复用</a>
+    </h1>
+  
+
+        
+        <a href="/post/io-multiplexing/" class="archive-article-date">
+  	<time datetime="2019-05-26T05:08:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-05-26</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>上周五和同事聊天，从python的协程实现聊到网络TCP连接，最后落到了IO多路复用。于是觉得需要深入看一下I/O非阻塞具体实现的原理。</p>
+<p><a href="https://www.cnblogs.com/welen/articles/5385837.html" target="_blank" rel="external">https://www.cnblogs.com/welen/articles/5385837.html</a></p>
 
       
 
@@ -337,11 +589,11 @@ var _hmt = _hmt || [];
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">mysql</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">io</a>
         		</li>
       		 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">acid</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">socket</a>
         		</li>
       		
 		</ul>
@@ -351,404 +603,7 @@ var _hmt = _hmt || [];
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/post/database-isolations/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-optimize-sql" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/optimize-sql/">SQL 调优</a>
-    </h1>
-  
-
-        
-        <a href="/post/optimize-sql/" class="archive-article-date">
-  	<time datetime="2019-04-05T03:50:02.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-04-05</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>这两天公司一直在招人，CTO经常问面试者的问题：怎么sql调优？之后大家讨论，感觉sql调优的方法太多了，这里总结一下</p>
-<p>因为我们主要用MySQL（InnoDB），先砸一下MySQL的官方文档</p>
-<p><a href="https://dev.mysql.com/doc/refman/8.0/en/optimization.html" target="_blank" rel="external">https://dev.mysql.com/doc/refman/8.0/en/optimization.html</a></p>
-<h4 id="1-索引相关"><a href="#1-索引相关" class="headerlink" title="1. 索引相关"></a>1. 索引相关</h4><ul>
-<li><p>索引是面试者最容易想到的答案。我们都知道，字段加了索引以后，在 where, join, order by 字段的时候都会变得非常快。</p>
-</li>
-<li><p>如果where条件后过滤的是 is null</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span> <span class="keyword">is</span> <span class="literal">null</span></div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>这个时候即使字段加了索引，搜索 null 值会让数据库引擎不使用索引。所以例子中尽量填充 count=0 ，不要留 null 值。上面例子将变成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span> = <span class="number">0</span></div></pre></td></tr></table></figure></p>
-<ul>
-<li>尽量不要用 &lt;&gt; 或 != ，因为这些也会导致数据库引擎不使用索引，使用全表扫描</li>
-<li>同样的原因，选择一个范围的时候，能用 between 尽量都用 between</li>
-<li>用 exists 代替 in ，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, <span class="built_in">number</span> <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_order</div><div class="line"><span class="keyword">where</span> <span class="keyword">id</span> <span class="keyword">in</span></div><div class="line">(</div><div class="line">    <span class="keyword">select</span> order_id <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_aftersale</div><div class="line">)</div><div class="line">;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>最好改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> o.id, o.number <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_order o</div><div class="line"><span class="keyword">where</span> <span class="keyword">exists</span></div><div class="line">(</div><div class="line">    <span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_aftersale a</div><div class="line">    <span class="keyword">where</span> a.order_id=o.id</div><div class="line">)</div><div class="line">;</div></pre></td></tr></table></figure></p>
-<p>同理，用 not exists 代替 not in</p>
-<ul>
-<li>关于 like，如果全模糊查找 “%test%” 肯定是要全表扫描的。如果只有右模糊查找 “test%” 是可以使用索引的。而左模糊索引就用不了了</li>
-<li>其实也是同样的原理，（对MySQL InnoDB）不要<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>要达成同样的目的一般使用<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="number">1</span>) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure></p>
-<p>因为一般第一列默认都是主键，都有索引。这里补充一下，如果<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="keyword">id</span>) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure></p>
-<p>会过滤掉是null的值，速度会变慢很多</p>
-<ul>
-<li>不要对过滤字段本身做计算，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span>/<span class="number">2</span>=<span class="number">10</span></div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>这样会导致不用索引。应该改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span>=<span class="number">10</span>*<span class="number">2</span></div></pre></td></tr></table></figure></p>
-<ul>
-<li>同样的道理，如果 where 筛选的字段用了函数，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">substring</span>(<span class="keyword">name</span>, <span class="number">1</span>, <span class="number">3</span>)=<span class="string">'aaa'</span></div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>索引也用不了。应该改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">name</span> <span class="keyword">like</span> <span class="string">'aaa%'</span></div></pre></td></tr></table></figure></p>
-<ul>
-<li>实际执行插入和删除大量数据的时候（大事务操作），尽可能拆分任务，不要一次执行全量，以防锁表时间过长</li>
-<li>确认删除全表时，先 truncate，再 drop</li>
-<li>on, where, having 都可以过滤。on 最先执行，where其次，然后再已经计算出所有结果之后，having才会起作用。所以能用where尽量不用having。如果是单边的左或右连接能用on就不用where。</li>
-</ul>
-<h4 id="2-其他操作"><a href="#2-其他操作" class="headerlink" title="2. 其他操作"></a>2. 其他操作</h4><ul>
-<li>当只要m行数据时使用 LIMIT m，比如 LIMIT 1</li>
-<li>创建一些中间表，把大量反复查询多表并且没有很高时效要求（或一段时间数据不发生变化）的结果存在中间表里。再基于这些中间表查询</li>
-<li>存储过程</li>
-</ul>
-<h4 id="4-架构上的改进"><a href="#4-架构上的改进" class="headerlink" title="4. 架构上的改进"></a>4. 架构上的改进</h4><ul>
-<li>查看数据库最大连接数，查看分配的CPU，内存空间（比如临时表等都会占用内存）</li>
-<li>增加线程缓存大小。如果希望服务器每秒接收数百个连接请求，那么应该将thread_cache_size设置的足够高，以便大多数新连接可以使用缓存线程。</li>
-<li>从内存读取数据。设置innodb_buffer_pool_size。检查当前的配置是否合理<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> <span class="keyword">STATUS</span> <span class="keyword">LIKE</span> <span class="string">'innodb_buffer_pool_pages_%'</span>;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>然后查看结果里的 Innodb_buffer_pool_pages_free 值，如果为0说明缓存不够了</p>
-<ul>
-<li>读写分离。大量的只读操作都在读库，没有任何锁，速度非常快</li>
-<li>查看慢sql日志：/var/log/mysql/log-slow-queries.log</li>
-</ul>
-<h4 id="5-Django相关"><a href="#5-Django相关" class="headerlink" title="5. Django相关"></a>5. Django相关</h4><p>我们平时大量使用 Django 的 ORM，效率高的写法很重要。附一下Django的官方文档 <a href="https://docs.djangoproject.com/en/2.2/topics/db/optimization/" target="_blank" rel="external">https://docs.djangoproject.com/en/2.2/topics/db/optimization/</a>  官方文档写的非常全面。以下记录一些自己跳过的坑。</p>
-<ul>
-<li>批量更新数据的时候，如果是一条一条更新，对数据库会有多次I/O，导致非常慢。尽量选择一次更新多条。有一种简单的情况是所有条目要更新的字段内容是一样的时候<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Entry.objects.select_related().filter(blog=b).update(headline=<span class="string">'Everything is the same'</span>)</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>这种时候ORM里的save()方法不会被执行。如果想要执行的话需要手动调用一下<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> item <span class="keyword">in</span> my_queryset:</div><div class="line">    item.save()</div></pre></td></tr></table></figure></p>
-<p>但是大多数时候更新多条数据的每条数据值可能是不同的。如果是有规律的，比如是在原有值的变化，可以<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.db.models <span class="keyword">import</span> F</div><div class="line">Entry.objects.all().update(n_pingbacks=F(<span class="string">'n_pingbacks'</span>) + <span class="number">1</span>)</div></pre></td></tr></table></figure></p>
-<p>如果没有规律，原生sql也只能执行多条的，ORM就没有办法更优化了，只能多次I/O。</p>
-<ul>
-<li><p>同理，减少I/O，创建多条尽量用 bulk_create</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># insert multiple items in ProductPromotionMain</span></div><div class="line"><span class="keyword">for</span> product <span class="keyword">in</span> products[start_pos:end_pos]:</div><div class="line">    product_id = product.id</div><div class="line">    productpromotion_data = &#123;</div><div class="line">        <span class="string">"promotionmain_id"</span>: self.promotionmain_id,</div><div class="line">        <span class="string">"product_id"</span>: product.id,</div><div class="line">        <span class="string">"promotion_type"</span>: promotion_type,</div><div class="line">        <span class="string">"start_time"</span>: promotionmain.start_time,</div><div class="line">        <span class="string">"end_time"</span>: promotionmain.end_time,</div><div class="line">    &#125;</div><div class="line">    productpromotions.append(ProductPromotionMain(**productpromotion_data))</div><div class="line"></div><div class="line"><span class="keyword">if</span> len(productpromotions) &gt; <span class="number">0</span>:</div><div class="line">    ProductPromotionMain.objects.bulk_create(productpromotions)</div></pre></td></tr></table></figure>
-</li>
-<li><p>当需要很多张表join以后的多字段值的时候，正常用Django的ORM获取，需要每张表都分别获取再组合，或者是用Model里property的方式把其他表相关字段拿过来放某个主表里，然后通过ORM获取这个主表对象，连带获取到所有相关表数据。有的时候属性会造成一些重复sql，比如</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(models.Model)</span>:</span></div><div class="line">    id = models.Integerfield()</div><div class="line">    aaa = models.Charfield()</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">bbb</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">return</span> B.objects.get(a_id=self.id)</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">ccc</span><span class="params">(self)</span>:</span></div><div class="line">        bbb = self.bbb</div><div class="line">        <span class="keyword">return</span> C.objects.get(b_id=bbb.id)</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>需要返回所有字段<br><figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="attr">"id"</span>: <span class="number">1</span>,</div><div class="line">    <span class="attr">"aaa"</span>: <span class="string">"my str"</span>,</div><div class="line">    <span class="attr">"bbb"</span>: &#123;</div><div class="line">        <span class="attr">"id"</span>: <span class="number">10</span>,</div><div class="line">        <span class="attr">"a_id"</span>: <span class="number">1</span></div><div class="line">    &#125;,</div><div class="line">    <span class="attr">"ccc"</span>: &#123;</div><div class="line">        <span class="attr">"id"</span>: <span class="number">100</span>,</div><div class="line">        <span class="attr">"b_id"</span>: <span class="number">10</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>这个时候，数据库会执行两次<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, a_id <span class="keyword">from</span> B <span class="keyword">where</span> a_id=<span class="number">10</span></div></pre></td></tr></table></figure></p>
-<p>进而造成了重复查询。查看官方文档发现，这种情况完全可以使用 @cached_property 。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.utils.functional <span class="keyword">import</span> cached_property</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(models.Model)</span>:</span></div><div class="line">    id = models.Integerfield()</div><div class="line">    aaa = models.Charfield()</div><div class="line"></div><div class="line"><span class="meta">    @cached_property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">bbb</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">return</span> B.objects.get(a_id=self.id)</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">ccc</span><span class="params">(self)</span>:</span></div><div class="line">        bbb = self.bbb</div><div class="line">        <span class="keyword">return</span> C.objects.get(b_id=bbb.id)</div></pre></td></tr></table></figure></p>
-<ul>
-<li><p>上述场景还可以直接使用 raw sql，可以直接在sql语句里join，也会变快</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">result = A.objects.raw(<span class="string">'SELECT a.id, a.aaa, b.id, c.id FROM A a left join B on a.id=b.a_id left join C on b.id=c.b_id'</span>)</div></pre></td></tr></table></figure>
-</li>
-<li><p>queryset很大的时候，当需要轮询处理，应该使用iterator，否则全部加载很消耗内存</p>
-</li>
-<li>不要用len(queryset)，应该用 queryset.count()</li>
-<li>if some_queryset.exists() 比 if some_queryset 性能好很多，能用exists()就多用. 这些原理都和上述原生sql要注意的地方类似</li>
-</ul>
-<h5 id="参考文献-文章"><a href="#参考文献-文章" class="headerlink" title="参考文献/文章"></a>参考文献/文章</h5><p><a href="https://www.cnblogs.com/yunfeifei/p/3850440.html" target="_blank" rel="external">https://www.cnblogs.com/yunfeifei/p/3850440.html</a><br><a href="https://blog.csdn.net/dev_csdn/article/details/78721426" target="_blank" rel="external">https://blog.csdn.net/dev_csdn/article/details/78721426</a><br><a href="https://zhuanlan.zhihu.com/p/39038788" target="_blank" rel="external">https://zhuanlan.zhihu.com/p/39038788</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">mysql</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">sql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/optimize-sql/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-hexo部署" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/hexo部署/">hexo部署 git相关</a>
-    </h1>
-  
-
-        
-        <a href="/post/hexo部署/" class="archive-article-date">
-  	<time datetime="2019-03-29T05:53:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-29</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。</p>
-<p>正常用命令</p>
-<pre><code>hexo g
-hexo d
-</code></pre><p>然后报错</p>
-<pre><code>Error: git@github.com: Permission denied (publickey).
-fatal: Could not read from remote repository.
-
-Please make sure you have the correct access rights
-and the repository exists.
-</code></pre><p>记录一下解决方法：</p>
-<h5 id="1-先自查-public-key"><a href="#1-先自查-public-key" class="headerlink" title="1. 先自查 public key"></a>1. 先自查 public key</h5><pre><code>ssh -vT git@github.com
-</code></pre><p>结果报错</p>
-<pre><code>...
-debug1: Trying private key: /Users/ella/.ssh/id_xmss
-debug1: No more authentication methods to try.
-git@github.com: Permission denied (publickey).
-</code></pre><h5 id="2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key"><a href="#2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key" class="headerlink" title="2. 去 github settings 里， SSH and GPG keys，新建 SSH key"></a>2. 去 github settings 里， SSH and GPG keys，新建 SSH key</h5><pre><code>vim ~/.ssh/id_rsa.pub
-</code></pre><p>把内容粘贴进github new ssh key 里，保存。</p>
-<h5 id="3-检查-“-config-yml”-文件"><a href="#3-检查-“-config-yml”-文件" class="headerlink" title="3. 检查 “_config.yml” 文件"></a>3. 检查 “_config.yml” 文件</h5><pre><code>deploy:
-  type: git
-  repository: git@github.com:jinlygenius/jinlygenius.github.io.git
-  branch: master
-</code></pre><h5 id="4-重新测试"><a href="#4-重新测试" class="headerlink" title="4. 重新测试"></a>4. 重新测试</h5><pre><code>ssh -vT git@github.com
-</code></pre><p>这回返回成功了</p>
-<pre><code>...
-Hi jinlygenius! You&apos;ve successfully authenticated, but GitHub does not provide shell access.
-debug1: channel 0: free: client-session, nchannels 1
-Transferred: sent 2684, received 2228 bytes, in 0.8 seconds
-Bytes per second: sent 3305.6, received 2744.0
-debug1: Exit status 1
-</code></pre><h5 id="5-还是部署出错，需要把-deploy-git-彻底删了"><a href="#5-还是部署出错，需要把-deploy-git-彻底删了" class="headerlink" title="5. 还是部署出错，需要把 .deploy_git 彻底删了"></a>5. 还是部署出错，需要把 .deploy_git 彻底删了</h5><pre><code>rm -rf .deploy_git
-</code></pre><h5 id="6-终于部署成功了-T-T"><a href="#6-终于部署成功了-T-T" class="headerlink" title="6. 终于部署成功了~~ T_T"></a>6. 终于部署成功了~~ T_T</h5>
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">hexo</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/hexo部署/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-ml-linear-regression" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/ml-linear-regression/">ml-linear-regression</a>
-    </h1>
-  
-
-        
-        <a href="/post/ml-linear-regression/" class="archive-article-date">
-  	<time datetime="2018-12-08T09:48:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/ml-linear-regression/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-django-filters" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/django-filters/">django-filters</a>
-    </h1>
-  
-
-        
-        <a href="/post/django-filters/" class="archive-article-date">
-  	<time datetime="2018-12-08T09:47:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/django-filters/">展开全文 >></a>
+          <a class="article-more-a" href="/post/io-multiplexing/">展开全文 >></a>
         </p>
       
 
@@ -780,7 +635,7 @@ debug1: Exit status 1
   
   
     <nav id="page-nav">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
     </nav>
   
 
@@ -890,14 +745,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">acid</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
@@ -914,6 +761,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">acid</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">hexo</a>
               </li>
              
@@ -923,6 +778,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">io</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">socket</a>
               </li>
              
               <li class="article-tag-list-item">
