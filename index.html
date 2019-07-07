@@ -498,7 +498,7 @@ var _hmt = _hmt || [];
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/post/CAP-and-BASE/">CAP-and-BASE</a>
+      <a class="article-title" href="/post/CAP-and-BASE/">分布式事务 和 CAP, BASE</a>
     </h1>
   
 
@@ -511,7 +511,21 @@ var _hmt = _hmt || [];
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><a href="http://www.ruanyifeng.com/blog/2018/07/cap.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2018/07/cap.html</a><br><a href="https://www.cnblogs.com/toov5/p/9998395.html" target="_blank" rel="external">https://www.cnblogs.com/toov5/p/9998395.html</a></p>
+        <p>之前写过博文，聊过事务的特性（ACID）和隔离级别等等。但是在当代互联网中，尤其是后端微服务化之后，必须要解决事务跨服务的问题，也就是分布式事务。</p>
+<h4 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h4><p>在谈怎么完成分布式事务之前，首先要明确的是，完成事务的强一致性在一个分布式系统里是不是必须的。 这里就引入了CAP理论，又叫布鲁尔理论。理论内容是，C（consistency）数据一致性, A（Availability）服务可用性（任何时候请求都可以被响应）, P（Partition tolerance）分区容错性（多分区之间（多节点间）通信可能会失败，这种情况发生时系统仍需能处理） 这三个组成分布式系统的特性，任何时候都只能选择其中两个，放弃一个。 </p>
+<p>一般的分布式系统，A是必须的，P是必须的。来思考一下，当假设AP都满足的情况下，也就是分区间通信如果出现了问题，这时候用户访问服务，服务端仍然要返回给用户响应，那么中断通信的分区之间的数据传输就必须能延后处理。这时候就产生了实时的数据不一致性，C得不到满足。而放弃C也是大部分分布式系统的选择。</p>
+<h4 id="BASE"><a href="#BASE" class="headerlink" title="BASE"></a>BASE</h4><p>BA（Basic Available）S（Soft state）E（Eventual consistency） 是现在分布式系统经常遵循的原则。系统只需要做到基本可用（繁忙时候可以选择服务降级），柔性状态（数据短期在各分区之间不完全一致），遵循最终一致性，就可以了。</p>
+<h4 id="分布式事务-——-2-phase-commit-两阶段提交"><a href="#分布式事务-——-2-phase-commit-两阶段提交" class="headerlink" title="分布式事务 —— 2 phase commit 两阶段提交"></a>分布式事务 —— 2 phase commit 两阶段提交</h4><p>当需要保持事务的ACID特性时，就需要有办法在分布式系统里实现事务特性。其中一种协议是2pc（两阶段提交）。</p>
+<p>两阶段提交协议需要基于以下假设：</p>
+<ul>
+<li>有一个节点被选为协调者（Coordinator），其他节点为参与者（Cohorts）</li>
+<li>所有节点的日志都能持久化</li>
+<li>所有节点损坏后都可恢复</li>
+</ul>
+<p><img src="/img/distributed-transaction/2pc.png" alt="" title="两阶段提交"></p>
+<h4 id="分布式事务-——-3-phase-commit-三阶段提交"><a href="#分布式事务-——-3-phase-commit-三阶段提交" class="headerlink" title="分布式事务 —— 3 phase commit 三阶段提交"></a>分布式事务 —— 3 phase commit 三阶段提交</h4><p>两阶段提交存在很多问题，比如在commit过程中有节点commit后挂掉了，且通知给了唯一的协调者协调者也挂掉了。这个时候新选出来的协调者则完全无法确定之前的节点是否提交了事务。三阶段提交是对两阶段提交的改进，可以理解成在两阶段提交的前后阶段中，多增加了一个预提交阶段。</p>
+<p><img src="/img/distributed-transaction/3pc.png" alt="" title="三阶段提交"></p>
+<p>参考文献：<br><a href="https://blog.csdn.net/u010425776/article/details/79516298" target="_blank" rel="external">https://blog.csdn.net/u010425776/article/details/79516298</a><br><a href="http://www.ruanyifeng.com/blog/2018/07/cap.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2018/07/cap.html</a><br><a href="https://www.cnblogs.com/toov5/p/9998395.html" target="_blank" rel="external">https://www.cnblogs.com/toov5/p/9998395.html</a></p>
 
       
 
@@ -745,11 +759,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">django</a>
+                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+                <a href="javascript:void(0)" class="js-tag color5">acid</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -761,23 +779,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">acid</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">hexo</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">git</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+                <a href="javascript:void(0)" class="js-tag color1">cache</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -786,6 +788,18 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">socket</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">hexo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">git</a>
               </li>
              
               <li class="article-tag-list-item">
