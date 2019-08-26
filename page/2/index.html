@@ -203,6 +203,245 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-python-metaclass" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/python-metaclass/">python-metaclass</a>
+    </h1>
+  
+
+        
+        <a href="/post/python-metaclass/" class="archive-article-date">
+  	<time datetime="2019-06-05T02:45:26.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://realpython.com/python-metaclasses/" target="_blank" rel="external">https://realpython.com/python-metaclasses/</a><br><a href="https://docs.python.org/3/library/functions.html#type" target="_blank" rel="external">https://docs.python.org/3/library/functions.html#type</a><br><a href="https://www.cnblogs.com/tkqasn/p/6524879.html" target="_blank" rel="external">https://www.cnblogs.com/tkqasn/p/6524879.html</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">➜  ~ python3</div><div class="line">Python 3.7.3 (default, Mar 27 2019, 09:23:15)</div><div class="line">[Clang 10.0.1 (clang-1001.0.46.3)] on darwin</div><div class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> or <span class="string">"license"</span> <span class="keyword">for</span> more information.</div><div class="line">&gt;&gt;&gt; Test = <span class="built_in">type</span>(<span class="string">'Test'</span>,(),&#123;<span class="string">'bar'</span>:True&#125;)</div><div class="line">&gt;&gt;&gt; Test</div><div class="line">&lt;class <span class="string">'__main__.Test'</span>&gt;</div><div class="line">&gt;&gt;&gt; Test.bar</div><div class="line">True</div><div class="line">&gt;&gt;&gt; def echo_bar(self):</div><div class="line">...     <span class="built_in">print</span>(self.bar)</div><div class="line">...</div><div class="line">&gt;&gt;&gt; FooChild = <span class="built_in">type</span>(<span class="string">'FooChild'</span>,(Test,),&#123;<span class="string">'echo_bar'</span>: echo_bar&#125;)</div><div class="line">&gt;&gt;&gt; aaa = FooChild()</div><div class="line">&gt;&gt;&gt; aaa.echo_bar()</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'echo_bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; FooChild.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; FooChild.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb = FooChild()</div><div class="line">&gt;&gt;&gt; bbb.__class__</div><div class="line">&lt;class <span class="string">'__main__.FooChild'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; def my_meta_class(future_class_name, future_class_parents, future_class_attr):</div><div class="line">...     attrs = ((name, value) <span class="keyword">for</span> name, value <span class="keyword">in</span> future_class_attr.items() <span class="keyword">if</span> not name.startswith(<span class="string">'__'</span>))</div><div class="line">...     uppercase_attr = dict((name.upper(), value) <span class="keyword">for</span> name, value <span class="keyword">in</span> attrs)</div><div class="line">...     <span class="built_in">return</span> <span class="built_in">type</span>(future_class_name, future_class_parents, uppercase_attr)</div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; class FOO(object):</div><div class="line">...     __metaclass__ = my_meta_class</div><div class="line">...     bar = <span class="string">'bar'</span></div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; dir(FOO)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; foo = FOO()</div><div class="line">&gt;&gt;&gt; dir(foo)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/python-metaclass/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-CAP-and-BASE" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/CAP-and-BASE/">分布式事务 和 CAP, BASE</a>
+    </h1>
+  
+
+        
+        <a href="/post/CAP-and-BASE/" class="archive-article-date">
+  	<time datetime="2019-06-04T05:22:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前写过博文，聊过事务的特性（ACID）和隔离级别等等。但是在当代互联网中，尤其是后端微服务化之后，必须要解决事务跨服务的问题，也就是分布式事务。</p>
+<h4 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h4><p>在谈怎么完成分布式事务之前，首先要明确的是，完成事务的强一致性在一个分布式系统里是不是必须的。 这里就引入了CAP理论，又叫布鲁尔理论。理论内容是，C（consistency）数据一致性, A（Availability）服务可用性（任何时候请求都可以被响应）, P（Partition tolerance）分区容错性（多分区之间（多节点间）通信可能会失败，这种情况发生时系统仍需能处理） 这三个组成分布式系统的特性，任何时候都只能选择其中两个，放弃一个。 </p>
+<p>一般的分布式系统，A是必须的，P是必须的。来思考一下，当假设AP都满足的情况下，也就是分区间通信如果出现了问题，这时候用户访问服务，服务端仍然要返回给用户响应，那么中断通信的分区之间的数据传输就必须能延后处理。这时候就产生了实时的数据不一致性，C得不到满足。而放弃C也是大部分分布式系统的选择。</p>
+<h4 id="BASE"><a href="#BASE" class="headerlink" title="BASE"></a>BASE</h4><p>BA（Basic Available）S（Soft state）E（Eventual consistency） 是现在分布式系统经常遵循的原则。系统只需要做到基本可用（繁忙时候可以选择服务降级），柔性状态（数据短期在各分区之间不完全一致），遵循最终一致性，就可以了。</p>
+<h4 id="分布式事务-——-2-phase-commit-两阶段提交"><a href="#分布式事务-——-2-phase-commit-两阶段提交" class="headerlink" title="分布式事务 —— 2 phase commit 两阶段提交"></a>分布式事务 —— 2 phase commit 两阶段提交</h4><p>当需要保持事务的ACID特性时，就需要有办法在分布式系统里实现事务特性。其中一种协议是2pc（两阶段提交）。</p>
+<p>两阶段提交协议需要基于以下假设：</p>
+<ul>
+<li>有一个节点被选为协调者（Coordinator），其他节点为参与者（Cohorts）</li>
+<li>所有节点的日志都能持久化</li>
+<li>所有节点损坏后都可恢复</li>
+</ul>
+<p><img src="/img/distributed-transaction/2pc.png" alt="" title="两阶段提交"></p>
+<h4 id="分布式事务-——-3-phase-commit-三阶段提交"><a href="#分布式事务-——-3-phase-commit-三阶段提交" class="headerlink" title="分布式事务 —— 3 phase commit 三阶段提交"></a>分布式事务 —— 3 phase commit 三阶段提交</h4><p>两阶段提交存在很多问题，比如在commit过程中有节点commit后挂掉了，且通知给了唯一的协调者协调者也挂掉了。这个时候新选出来的协调者则完全无法确定之前的节点是否提交了事务。三阶段提交是对两阶段提交的改进，可以理解成在两阶段提交的前后阶段中，多增加了一个预提交阶段。</p>
+<p><img src="/img/distributed-transaction/3pc.png" alt="" title="三阶段提交"></p>
+<p>参考文献：<br><a href="https://blog.csdn.net/u010425776/article/details/79516298" target="_blank" rel="external">https://blog.csdn.net/u010425776/article/details/79516298</a><br><a href="http://www.ruanyifeng.com/blog/2018/07/cap.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2018/07/cap.html</a><br><a href="https://www.cnblogs.com/toov5/p/9998395.html" target="_blank" rel="external">https://www.cnblogs.com/toov5/p/9998395.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">cap</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">base</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">distribution</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/CAP-and-BASE/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-io-multiplexing" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/io-multiplexing/">IO多路复用</a>
+    </h1>
+  
+
+        
+        <a href="/post/io-multiplexing/" class="archive-article-date">
+  	<time datetime="2019-05-26T05:08:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-05-26</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>上周五和同事聊天，从python的协程实现聊到网络TCP连接，最后落到了IO多路复用。于是觉得需要深入看一下I/O非阻塞具体实现的原理。</p>
+<p><a href="https://www.cnblogs.com/welen/articles/5385837.html" target="_blank" rel="external">https://www.cnblogs.com/welen/articles/5385837.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">io</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">socket</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/io-multiplexing/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-jwt" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -545,239 +784,6 @@ var _hmt = _hmt || [];
 
 
   
-    <article id="post-hexo部署" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/hexo部署/">hexo部署 git相关</a>
-    </h1>
-  
-
-        
-        <a href="/post/hexo部署/" class="archive-article-date">
-  	<time datetime="2019-03-29T05:53:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-29</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。</p>
-<p>正常用命令</p>
-<pre><code>hexo g
-hexo d
-</code></pre><p>然后报错</p>
-<pre><code>Error: git@github.com: Permission denied (publickey).
-fatal: Could not read from remote repository.
-
-Please make sure you have the correct access rights
-and the repository exists.
-</code></pre><p>记录一下解决方法：</p>
-<h5 id="1-先自查-public-key"><a href="#1-先自查-public-key" class="headerlink" title="1. 先自查 public key"></a>1. 先自查 public key</h5><pre><code>ssh -vT git@github.com
-</code></pre><p>结果报错</p>
-<pre><code>...
-debug1: Trying private key: /Users/ella/.ssh/id_xmss
-debug1: No more authentication methods to try.
-git@github.com: Permission denied (publickey).
-</code></pre><h5 id="2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key"><a href="#2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key" class="headerlink" title="2. 去 github settings 里， SSH and GPG keys，新建 SSH key"></a>2. 去 github settings 里， SSH and GPG keys，新建 SSH key</h5><pre><code>vim ~/.ssh/id_rsa.pub
-</code></pre><p>把内容粘贴进github new ssh key 里，保存。</p>
-<h5 id="3-检查-“-config-yml”-文件"><a href="#3-检查-“-config-yml”-文件" class="headerlink" title="3. 检查 “_config.yml” 文件"></a>3. 检查 “_config.yml” 文件</h5><pre><code>deploy:
-  type: git
-  repository: git@github.com:jinlygenius/jinlygenius.github.io.git
-  branch: master
-</code></pre><h5 id="4-重新测试"><a href="#4-重新测试" class="headerlink" title="4. 重新测试"></a>4. 重新测试</h5><pre><code>ssh -vT git@github.com
-</code></pre><p>这回返回成功了</p>
-<pre><code>...
-Hi jinlygenius! You&apos;ve successfully authenticated, but GitHub does not provide shell access.
-debug1: channel 0: free: client-session, nchannels 1
-Transferred: sent 2684, received 2228 bytes, in 0.8 seconds
-Bytes per second: sent 3305.6, received 2744.0
-debug1: Exit status 1
-</code></pre><h5 id="5-还是部署出错，需要把-deploy-git-彻底删了"><a href="#5-还是部署出错，需要把-deploy-git-彻底删了" class="headerlink" title="5. 还是部署出错，需要把 .deploy_git 彻底删了"></a>5. 还是部署出错，需要把 .deploy_git 彻底删了</h5><pre><code>rm -rf .deploy_git
-</code></pre><h5 id="6-终于部署成功了-T-T"><a href="#6-终于部署成功了-T-T" class="headerlink" title="6. 终于部署成功了~~ T_T"></a>6. 终于部署成功了~~ T_T</h5>
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">hexo</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/hexo部署/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-ml-linear-regression" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/ml-linear-regression/">ml-linear-regression</a>
-    </h1>
-  
-
-        
-        <a href="/post/ml-linear-regression/" class="archive-article-date">
-  	<time datetime="2018-12-08T09:48:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/ml-linear-regression/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-django-filters" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/django-filters/">django-filters</a>
-    </h1>
-  
-
-        
-        <a href="/post/django-filters/" class="archive-article-date">
-  	<time datetime="2018-12-08T09:47:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/django-filters/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
@@ -898,6 +904,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">cors</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
@@ -914,18 +924,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">io</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">socket</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">hexo</a>
               </li>
              
@@ -934,11 +932,63 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">io</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">socket</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">cap</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">base</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">distribution</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">sql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">select</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">poll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">epoll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">wsgi</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">gunicorn</a>
               </li>
              
               <li class="article-tag-list-item">

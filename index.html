@@ -203,6 +203,270 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-cors" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/cors/">CORS 跨域的深入理解 后端视角</a>
+    </h1>
+  
+
+        
+        <a href="/post/cors/" class="archive-article-date">
+  	<time datetime="2019-08-23T02:48:32.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-23</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们现在的B端管理网站，域名是sparrow.xxx.com 。 后端接口是 backend.xxx.com。 一直以来后端服务器都是允许跨域的，实现方式是django框架 + 包插件django-cors-headers。 惊觉为什么这样还是安全的呢？！拉上前端小伙伴大家认真重新复习了一下跨域，又动手试了试怎么能攻击到 backend.xxx.com 【捂脸】</p>
+<h3 id="跨域攻击"><a href="#跨域攻击" class="headerlink" title="跨域攻击"></a>跨域攻击</h3><p>跨域攻击的基本原理是，浏览器访问网站A，网站A登录信息等存在相应的cookie中（此处前端小伙伴说，cookie，storage等都是和域名相关的，只有访问同域名的时候才能获取到）。这时候用户在另一个页卡打开了网站Z，假如网站Z是一个恶意网站，植入了恶意js脚本，这个时候这段恶意脚本就可以带着篡改过的数据，访问网站A，并带上之前的cookie中A的登录信息等。如果A是银行网站，Z执行的恶意攻击可能就是访问A并把用户的钱转账给其他不法账户。</p>
+<p>如果上述A网站服务器不允许跨域，Z的ajax请求访问A的时候，因为不同源（必须同样的协议比如https，同样的域名包括二级域名都要相同，同样的端口比如80），A服务器就不会响应Z的请求，也就保障了安全。</p>
+<h3 id="我产生的问题"><a href="#我产生的问题" class="headerlink" title="我产生的问题"></a>我产生的问题</h3><p>目前我们项目的配置是，普通用户只能访问网站 sparrow.xxx.com（纯前端node应用） ，sparrow里ajax访问backend.xxx.com，登录backend的方式是token认证，然后token存在浏览器。sparrow服务器是不允许跨域的（后续大家讨论允许跨域也还是安全的），backend服务器是允许跨域的，返回header里 Access-Control-Allow-Origin: * . 这样为什么是安全的呢？</p>
+<h3 id="问题详解"><a href="#问题详解" class="headerlink" title="问题详解"></a>问题详解</h3><h4 id="概念一-明白实际发生了什么"><a href="#概念一-明白实际发生了什么" class="headerlink" title="概念一 明白实际发生了什么"></a>概念一 明白实际发生了什么</h4><ol>
+<li>用户浏览器输入sparrow网址，访问sparrow网站</li>
+<li>浏览器请求到sparrow的js，里面ajax访问backend进行登录</li>
+<li>获取到backend的token，存在local storage里（关联的是sparrow域名）</li>
+<li>假如用户打开恶意网站Z</li>
+<li>因为sparrow服务器禁止跨域，所以Z无法请求sparrow服务器。所以是安全的。</li>
+<li>如果Z想拿着sparrow的local storage里的token去访问backend，因为token的源是sparrow，所以浏览器限制了没办法拿着去访问backend。所以也是安全的。</li>
+<li>那么假设，sparrow服务器也设置了允许跨域。那么Z可以拿着token去请求sparrow服务器，但是因为token是backend的，所以请求sparrow没有任何意义。所以还是安全的。</li>
+</ol>
+<p><strong>这里就不得不引入另一个现实情况了——backend.xxx.com 的后端实现是django+drf。也就是提供服务端渲染的页面，可以用session的方式登录。于是又脑洞大开，那如果在浏览器第一个tab里，先用session的方式登录backend，然后在另一个tab访问恶意网站Z，由于backend是允许跨域的，Z是不是就可以用cookie里的session访问backend了，是不是就会有问题了？</strong></p>
+<h4 id="概念二-明白请求头header里发生了什么"><a href="#概念二-明白请求头header里发生了什么" class="headerlink" title="概念二 明白请求头header里发生了什么"></a>概念二 明白请求头header里发生了什么</h4><ol>
+<li><p>Access-Control-Allow-Origin: *。 我之前一直质疑写*不是很不安全么，为什么不只写sparrow.xxx.com不是感觉更安全么。实际并不是这样。 当浏览器请求服务器，第一次option请求的时候，服务器返回response header Access-Control-Allow-Origin: * ，只有当值是*的时候，是不允许携带cookie的。回到上面假想的访问backend的时候用session的登录方式，会不会不安全？答案是安全的，因为Access-Control-Allow-Origin: * 要不就同源访问，要是非同源的话是不允许带cookie的。</p>
+</li>
+<li><p>HttpOnly cookies。在第一次option访问backend的时候，response header里会指明 Set-Cookie: id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly。然后这种cookie就被浏览器保护起来了，没有任何js可以直接访问这个cookie。此cookie只能在访问backend的时候被浏览器自己控制放入request header中。所以再一次保证了不被Z挟持。（这里如果想了解更多可以看看 XSS 跨域脚本攻击）</p>
+</li>
+</ol>
+<p>是不是感觉清楚多了，完全明白了现在的服务器允许跨域为什么是安全的了。</p>
+<p>#<br><strong>小伙伴们又问了，为什么现在都流行用token比如JWT取代session的方式登录呢？</strong></p>
+<h3 id="token-VS-session-——"><a href="#token-VS-session-——" class="headerlink" title="token VS session ——"></a>token VS session ——</h3><p>作为一个后端，我认为token对后端的改进是比较大的，因为如果用session的话，数据库里需要存session表，根据前端发来的session_id查表才能获取到用户。而token比如JWT，分发之后就不需要再储存了，校验的时候只需要用secret加盐校验是自己分发出去的有效token，再从token payload 取出用户id就可以了。而对前端来说，存session_id和token，都是两个字符串，感觉没什么区别。</p>
+<p>不过我再一次naive了。实际上token在前端对比session_id还有另一个好处，就是顺便解决了csrf跨站请求伪造问题。当浏览器通过form表单提交服务器的时候，cookie是被自动带上的，且不遵循同源原则。也就是说，如果恶意网站Z的js通过form提交网站A的服务器，且篡改了提交数据，且登录A是通过session_id存cookie的方式，就可以达到文章开头提到的转钱给不法账户的效果。这个时候通常的解决方法是通过form携带csrf token，也就是表单每次提交的时候，都需要携带A服务器分发的一个csrf token，后端会校验csrf token是否有效。这样就能避免csrf攻击了，因为Z的js是无法自己获取到一个新的有效的csrf token的。那么，如果不是用session的登录方式，而是用token authorization的方式，表单提交的时候自动带上的cookie就没用了。原理其实就类似csrf token，请求需要把JWT token从local storage取出来放在请求header里。这样流程就回到了文章上述的各流程中，也就避免了csrf攻击。所以即使对前端来说，token登录方式也比session的登录方式更有优势。</p>
+<p>#</p>
+<h3 id="django-cors-headers"><a href="#django-cors-headers" class="headerlink" title="django-cors-headers"></a>django-cors-headers</h3><p>最后再看一下服务器允许跨域是怎么实现的。首先在settings.py 里配置 CORS_ORIGIN_ALLOW_ALL = True 表示允许跨域。然后查看代码 corsheaders/middleware.py 中 CorsMiddleware 中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">process_response</span><span class="params">(self, request, response)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line"><span class="string">        Add the respective CORS headers</span></div><div class="line"><span class="string">        """</span></div><div class="line">        enabled = getattr(request, <span class="string">"_cors_enabled"</span>, <span class="keyword">None</span>)</div><div class="line">        <span class="keyword">if</span> enabled <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">            enabled = self.is_enabled(request)</div><div class="line"></div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> enabled:</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        patch_vary_headers(response, [<span class="string">"Origin"</span>])</div><div class="line"></div><div class="line">        origin = request.META.get(<span class="string">"HTTP_ORIGIN"</span>)</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> origin:</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        <span class="comment"># todo: check hostname from db instead</span></div><div class="line">        url = urlparse(origin)</div><div class="line"></div><div class="line">        <span class="keyword">if</span> conf.CORS_ALLOW_CREDENTIALS:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_CREDENTIALS] = <span class="string">"true"</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (</div><div class="line">            <span class="keyword">not</span> conf.CORS_ORIGIN_ALLOW_ALL</div><div class="line">            <span class="keyword">and</span> <span class="keyword">not</span> self.origin_found_in_white_lists(origin, url)</div><div class="line">            <span class="keyword">and</span> <span class="keyword">not</span> self.check_signal(request)</div><div class="line">        ):</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        <span class="keyword">if</span> conf.CORS_ORIGIN_ALLOW_ALL <span class="keyword">and</span> <span class="keyword">not</span> conf.CORS_ALLOW_CREDENTIALS:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_ORIGIN] = <span class="string">"*"</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin</div><div class="line"></div><div class="line">        <span class="keyword">if</span> len(conf.CORS_EXPOSE_HEADERS):</div><div class="line">            response[ACCESS_CONTROL_EXPOSE_HEADERS] = <span class="string">", "</span>.join(</div><div class="line">                conf.CORS_EXPOSE_HEADERS</div><div class="line">            )</div><div class="line"></div><div class="line">        <span class="keyword">if</span> request.method == <span class="string">"OPTIONS"</span>:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_HEADERS] = <span class="string">", "</span>.join(conf.CORS_ALLOW_HEADERS)</div><div class="line">            response[ACCESS_CONTROL_ALLOW_METHODS] = <span class="string">", "</span>.join(conf.CORS_ALLOW_METHODS)</div><div class="line">            <span class="keyword">if</span> conf.CORS_PREFLIGHT_MAX_AGE:</div><div class="line">                response[ACCESS_CONTROL_MAX_AGE] = conf.CORS_PREFLIGHT_MAX_AGE</div><div class="line"></div><div class="line">        <span class="keyword">return</span> response</div></pre></td></tr></table></figure>
+<p>可以看到，如果设置允许跨域，response[ACCESS_CONTROL_ALLOW_ORIGIN] = “*“ 这段代码会设置header中的ACCESS_CONTROL_ALLOW_ORIGIN为*，和我们实际查看的response header对应上了。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">cors</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/cors/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-select-poll-epoll" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/select-poll-epoll/">select-poll-epoll</a>
+    </h1>
+  
+
+        
+        <a href="/post/select-poll-epoll/" class="archive-article-date">
+  	<time datetime="2019-08-22T07:54:12.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-22</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">select</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">poll</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">epoll</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/select-poll-epoll/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-wsgi-gunicorn" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/wsgi-gunicorn/">wsgi-gunicorn</a>
+    </h1>
+  
+
+        
+        <a href="/post/wsgi-gunicorn/" class="archive-article-date">
+  	<time datetime="2019-08-22T07:51:43.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-22</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://xiaorui.cc/2017/02/16/%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3uwsgi%e5%92%8cgunicorn%e7%bd%91%e7%bb%9c%e6%a8%a1%e5%9e%8b%e4%b8%8a/" target="_blank" rel="external">http://xiaorui.cc/2017/02/16/%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3uwsgi%e5%92%8cgunicorn%e7%bd%91%e7%bb%9c%e6%a8%a1%e5%9e%8b%e4%b8%8a/</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">django</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">wsgi</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">gunicorn</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/wsgi-gunicorn/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-consistent-hashing" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -393,221 +657,16 @@ var _hmt = _hmt || [];
     <div class="article-info article-info-index">
       
       
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/python3-multiextends/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-python-metaclass" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/python-metaclass/">python-metaclass</a>
-    </h1>
-  
-
-        
-        <a href="/post/python-metaclass/" class="archive-article-date">
-  	<time datetime="2019-06-05T02:45:26.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-05</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="https://realpython.com/python-metaclasses/" target="_blank" rel="external">https://realpython.com/python-metaclasses/</a><br><a href="https://docs.python.org/3/library/functions.html#type" target="_blank" rel="external">https://docs.python.org/3/library/functions.html#type</a><br><a href="https://www.cnblogs.com/tkqasn/p/6524879.html" target="_blank" rel="external">https://www.cnblogs.com/tkqasn/p/6524879.html</a></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">➜  ~ python3</div><div class="line">Python 3.7.3 (default, Mar 27 2019, 09:23:15)</div><div class="line">[Clang 10.0.1 (clang-1001.0.46.3)] on darwin</div><div class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> or <span class="string">"license"</span> <span class="keyword">for</span> more information.</div><div class="line">&gt;&gt;&gt; Test = <span class="built_in">type</span>(<span class="string">'Test'</span>,(),&#123;<span class="string">'bar'</span>:True&#125;)</div><div class="line">&gt;&gt;&gt; Test</div><div class="line">&lt;class <span class="string">'__main__.Test'</span>&gt;</div><div class="line">&gt;&gt;&gt; Test.bar</div><div class="line">True</div><div class="line">&gt;&gt;&gt; def echo_bar(self):</div><div class="line">...     <span class="built_in">print</span>(self.bar)</div><div class="line">...</div><div class="line">&gt;&gt;&gt; FooChild = <span class="built_in">type</span>(<span class="string">'FooChild'</span>,(Test,),&#123;<span class="string">'echo_bar'</span>: echo_bar&#125;)</div><div class="line">&gt;&gt;&gt; aaa = FooChild()</div><div class="line">&gt;&gt;&gt; aaa.echo_bar()</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; hasattr(FooChild, <span class="string">'echo_bar'</span>)</div><div class="line">True</div><div class="line">&gt;&gt;&gt; FooChild.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; FooChild.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb = FooChild()</div><div class="line">&gt;&gt;&gt; bbb.__class__</div><div class="line">&lt;class <span class="string">'__main__.FooChild'</span>&gt;</div><div class="line">&gt;&gt;&gt; bbb.__class__.__class__</div><div class="line">&lt;class <span class="string">'type'</span>&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; def my_meta_class(future_class_name, future_class_parents, future_class_attr):</div><div class="line">...     attrs = ((name, value) <span class="keyword">for</span> name, value <span class="keyword">in</span> future_class_attr.items() <span class="keyword">if</span> not name.startswith(<span class="string">'__'</span>))</div><div class="line">...     uppercase_attr = dict((name.upper(), value) <span class="keyword">for</span> name, value <span class="keyword">in</span> attrs)</div><div class="line">...     <span class="built_in">return</span> <span class="built_in">type</span>(future_class_name, future_class_parents, uppercase_attr)</div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; class FOO(object):</div><div class="line">...     __metaclass__ = my_meta_class</div><div class="line">...     bar = <span class="string">'bar'</span></div><div class="line">...</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; dir(FOO)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt; foo = FOO()</div><div class="line">&gt;&gt;&gt; dir(foo)</div><div class="line">[<span class="string">'__class__'</span>, <span class="string">'__delattr__'</span>, <span class="string">'__dict__'</span>, <span class="string">'__dir__'</span>, <span class="string">'__doc__'</span>, <span class="string">'__eq__'</span>, <span class="string">'__format__'</span>, <span class="string">'__ge__'</span>, <span class="string">'__getattribute__'</span>, <span class="string">'__gt__'</span>, <span class="string">'__hash__'</span>, <span class="string">'__init__'</span>, <span class="string">'__init_subclass__'</span>, <span class="string">'__le__'</span>, <span class="string">'__lt__'</span>, <span class="string">'__metaclass__'</span>, <span class="string">'__module__'</span>, <span class="string">'__ne__'</span>, <span class="string">'__new__'</span>, <span class="string">'__reduce__'</span>, <span class="string">'__reduce_ex__'</span>, <span class="string">'__repr__'</span>, <span class="string">'__setattr__'</span>, <span class="string">'__sizeof__'</span>, <span class="string">'__str__'</span>, <span class="string">'__subclasshook__'</span>, <span class="string">'__weakref__'</span>, <span class="string">'bar'</span>]</div><div class="line">&gt;&gt;&gt;</div><div class="line">&gt;&gt;&gt;</div></pre></td></tr></table></figure>
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/python-metaclass/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-CAP-and-BASE" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/CAP-and-BASE/">分布式事务 和 CAP, BASE</a>
-    </h1>
-  
-
-        
-        <a href="/post/CAP-and-BASE/" class="archive-article-date">
-  	<time datetime="2019-06-04T05:22:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-06-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>之前写过博文，聊过事务的特性（ACID）和隔离级别等等。但是在当代互联网中，尤其是后端微服务化之后，必须要解决事务跨服务的问题，也就是分布式事务。</p>
-<h4 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h4><p>在谈怎么完成分布式事务之前，首先要明确的是，完成事务的强一致性在一个分布式系统里是不是必须的。 这里就引入了CAP理论，又叫布鲁尔理论。理论内容是，C（consistency）数据一致性, A（Availability）服务可用性（任何时候请求都可以被响应）, P（Partition tolerance）分区容错性（多分区之间（多节点间）通信可能会失败，这种情况发生时系统仍需能处理） 这三个组成分布式系统的特性，任何时候都只能选择其中两个，放弃一个。 </p>
-<p>一般的分布式系统，A是必须的，P是必须的。来思考一下，当假设AP都满足的情况下，也就是分区间通信如果出现了问题，这时候用户访问服务，服务端仍然要返回给用户响应，那么中断通信的分区之间的数据传输就必须能延后处理。这时候就产生了实时的数据不一致性，C得不到满足。而放弃C也是大部分分布式系统的选择。</p>
-<h4 id="BASE"><a href="#BASE" class="headerlink" title="BASE"></a>BASE</h4><p>BA（Basic Available）S（Soft state）E（Eventual consistency） 是现在分布式系统经常遵循的原则。系统只需要做到基本可用（繁忙时候可以选择服务降级），柔性状态（数据短期在各分区之间不完全一致），遵循最终一致性，就可以了。</p>
-<h4 id="分布式事务-——-2-phase-commit-两阶段提交"><a href="#分布式事务-——-2-phase-commit-两阶段提交" class="headerlink" title="分布式事务 —— 2 phase commit 两阶段提交"></a>分布式事务 —— 2 phase commit 两阶段提交</h4><p>当需要保持事务的ACID特性时，就需要有办法在分布式系统里实现事务特性。其中一种协议是2pc（两阶段提交）。</p>
-<p>两阶段提交协议需要基于以下假设：</p>
-<ul>
-<li>有一个节点被选为协调者（Coordinator），其他节点为参与者（Cohorts）</li>
-<li>所有节点的日志都能持久化</li>
-<li>所有节点损坏后都可恢复</li>
-</ul>
-<p><img src="/img/distributed-transaction/2pc.png" alt="" title="两阶段提交"></p>
-<h4 id="分布式事务-——-3-phase-commit-三阶段提交"><a href="#分布式事务-——-3-phase-commit-三阶段提交" class="headerlink" title="分布式事务 —— 3 phase commit 三阶段提交"></a>分布式事务 —— 3 phase commit 三阶段提交</h4><p>两阶段提交存在很多问题，比如在commit过程中有节点commit后挂掉了，且通知给了唯一的协调者协调者也挂掉了。这个时候新选出来的协调者则完全无法确定之前的节点是否提交了事务。三阶段提交是对两阶段提交的改进，可以理解成在两阶段提交的前后阶段中，多增加了一个预提交阶段。</p>
-<p><img src="/img/distributed-transaction/3pc.png" alt="" title="三阶段提交"></p>
-<p>参考文献：<br><a href="https://blog.csdn.net/u010425776/article/details/79516298" target="_blank" rel="external">https://blog.csdn.net/u010425776/article/details/79516298</a><br><a href="http://www.ruanyifeng.com/blog/2018/07/cap.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2018/07/cap.html</a><br><a href="https://www.cnblogs.com/toov5/p/9998395.html" target="_blank" rel="external">https://www.cnblogs.com/toov5/p/9998395.html</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/CAP-and-BASE/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-io-multiplexing" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/io-multiplexing/">IO多路复用</a>
-    </h1>
-  
-
-        
-        <a href="/post/io-multiplexing/" class="archive-article-date">
-  	<time datetime="2019-05-26T05:08:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-05-26</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>上周五和同事聊天，从python的协程实现聊到网络TCP连接，最后落到了IO多路复用。于是觉得需要深入看一下I/O非阻塞具体实现的原理。</p>
-<p><a href="https://www.cnblogs.com/welen/articles/5385837.html" target="_blank" rel="external">https://www.cnblogs.com/welen/articles/5385837.html</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">io</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">python3</a>
         		</li>
       		 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">socket</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">multiextends</a>
         		</li>
       		
 		</ul>
@@ -617,7 +676,7 @@ var _hmt = _hmt || [];
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/post/io-multiplexing/">展开全文 >></a>
+          <a class="article-more-a" href="/post/python3-multiextends/">展开全文 >></a>
         </p>
       
 
@@ -767,6 +826,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">cors</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
@@ -783,18 +846,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">io</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">socket</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">hexo</a>
               </li>
              
@@ -803,11 +854,63 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">io</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">socket</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">cap</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">base</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">distribution</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">sql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">select</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">poll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">epoll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">wsgi</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">gunicorn</a>
               </li>
              
               <li class="article-tag-list-item">

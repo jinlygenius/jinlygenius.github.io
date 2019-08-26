@@ -203,6 +203,239 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-hexo部署" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/hexo部署/">hexo部署 git相关</a>
+    </h1>
+  
+
+        
+        <a href="/post/hexo部署/" class="archive-article-date">
+  	<time datetime="2019-03-29T05:53:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天好囧啊因为好久没更新博客了，更新博客的时候发现部署出现问题。</p>
+<p>正常用命令</p>
+<pre><code>hexo g
+hexo d
+</code></pre><p>然后报错</p>
+<pre><code>Error: git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+</code></pre><p>记录一下解决方法：</p>
+<h5 id="1-先自查-public-key"><a href="#1-先自查-public-key" class="headerlink" title="1. 先自查 public key"></a>1. 先自查 public key</h5><pre><code>ssh -vT git@github.com
+</code></pre><p>结果报错</p>
+<pre><code>...
+debug1: Trying private key: /Users/ella/.ssh/id_xmss
+debug1: No more authentication methods to try.
+git@github.com: Permission denied (publickey).
+</code></pre><h5 id="2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key"><a href="#2-去-github-settings-里，-SSH-and-GPG-keys，新建-SSH-key" class="headerlink" title="2. 去 github settings 里， SSH and GPG keys，新建 SSH key"></a>2. 去 github settings 里， SSH and GPG keys，新建 SSH key</h5><pre><code>vim ~/.ssh/id_rsa.pub
+</code></pre><p>把内容粘贴进github new ssh key 里，保存。</p>
+<h5 id="3-检查-“-config-yml”-文件"><a href="#3-检查-“-config-yml”-文件" class="headerlink" title="3. 检查 “_config.yml” 文件"></a>3. 检查 “_config.yml” 文件</h5><pre><code>deploy:
+  type: git
+  repository: git@github.com:jinlygenius/jinlygenius.github.io.git
+  branch: master
+</code></pre><h5 id="4-重新测试"><a href="#4-重新测试" class="headerlink" title="4. 重新测试"></a>4. 重新测试</h5><pre><code>ssh -vT git@github.com
+</code></pre><p>这回返回成功了</p>
+<pre><code>...
+Hi jinlygenius! You&apos;ve successfully authenticated, but GitHub does not provide shell access.
+debug1: channel 0: free: client-session, nchannels 1
+Transferred: sent 2684, received 2228 bytes, in 0.8 seconds
+Bytes per second: sent 3305.6, received 2744.0
+debug1: Exit status 1
+</code></pre><h5 id="5-还是部署出错，需要把-deploy-git-彻底删了"><a href="#5-还是部署出错，需要把-deploy-git-彻底删了" class="headerlink" title="5. 还是部署出错，需要把 .deploy_git 彻底删了"></a>5. 还是部署出错，需要把 .deploy_git 彻底删了</h5><pre><code>rm -rf .deploy_git
+</code></pre><h5 id="6-终于部署成功了-T-T"><a href="#6-终于部署成功了-T-T" class="headerlink" title="6. 终于部署成功了~~ T_T"></a>6. 终于部署成功了~~ T_T</h5>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">hexo</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/hexo部署/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-ml-linear-regression" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/ml-linear-regression/">ml-linear-regression</a>
+    </h1>
+  
+
+        
+        <a href="/post/ml-linear-regression/" class="archive-article-date">
+  	<time datetime="2018-12-08T09:48:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/ml-linear-regression/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-django-filters" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/django-filters/">django-filters</a>
+    </h1>
+  
+
+        
+        <a href="/post/django-filters/" class="archive-article-date">
+  	<time datetime="2018-12-08T09:47:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-12-08</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/django-filters/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-flask-blueprints" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -411,312 +644,6 @@ var _hmt = _hmt || [];
 
 
   
-    <article id="post-sleep" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/sleep/">聊聊失眠这件小事</a>
-    </h1>
-  
-
-        
-        <a href="/post/sleep/" class="archive-article-date">
-  	<time datetime="2017-07-18T06:49:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-18</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我之前突然就很爱思考，尤其爱躺下准备睡觉前想想人类，想想宇宙，想想睡眠本身。最后突然竟然就怎么都睡不着了。再后来连续几天彻夜失眠，害怕至极，查了知乎发现一个神答案。从那以后闭眼几乎就能睡着。 我觉得这个答案太神了，不仅能被我用，也许以后还能给我的孩子用。。。[捂脸 我是多么的爱操心]收藏了真怕以后答案被删了，改了，或者知乎出现变故（别打我）而找不到了，所以特此复制一遍。</p>
-<p>原文链接：<br><a href="https://www.zhihu.com/question/29764256/answer/46646576" target="_blank" rel="external">https://www.zhihu.com/question/29764256/answer/46646576</a></p>
-<p>复制原文内容：</p>
-<p>作者：肖遥生<br>链接：<a href="https://www.zhihu.com/question/29764256/answer/46646576" target="_blank" rel="external">https://www.zhihu.com/question/29764256/answer/46646576</a><br>来源：知乎<br>著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</p>
-<p>你每天11点就上了床，有时候还吃点药，打算11点半至12点间睡觉，拿起手机刷了刷，快到12点了，似乎没什么倦意，放下手机，进入睡眠状态，可是脑细胞更活跃了，一幕一幕跟放电影似的，“努力”睡了一会儿，睡不着，算了还是继续看手机吧，到了一两点，终于有些困意了，握着手机睡着了，结果中间醒了过来，一看手机，才三四点，并且异常清醒，瞬间泪崩……</p>
-<p>失眠的人，或多或少都有过这种遭遇。</p>
-<p>普鲁斯特也是如此，《追忆似水年华》七大卷开篇就说，「好久了，我一直早睡。有时，蜡烛刚灭，我的双眼随机闭上，快得来不及思量：“我睡了”。半小时后，我想到应该睡着了，这个想法反倒把我弄醒了」。</p>
-<p>可我知道，你绝对不会像这位文学大师一样，仅仅因为睡前妈妈没来道声晚安就辗转难眠；你也不会像这位内心敏感的忧郁少年一样，将自己失眠的经历写成30页的日记。</p>
-<p>更何况，如果你很多时候只是因为白天起得晚，然后在正常时段无法入睡了，便不必庸人自扰，那不叫失眠。</p>
-<p>真正的失眠，是本来就起得早，也忙活了一天，本该早早累趴，进入梦乡，却陷入一开始提到的那番境遇。</p>
-<p>问题是：我们为什么会失眠？</p>
-<p>生活压力大引起的焦虑固然是最普遍的因素，但毕竟它只是外部原因，根源在于我们自己的内心。</p>
-<p>睡觉是一项自然的身体活动，不是欲想的行为，不是发挥主观能动性的行动，是身体释放出的一段段流水似的、井然有序的感觉，告诉你，哦，困了，你也不带任何思绪地接受了，便睡着了；而不是心理活动，跟挂了个闹钟似的，不断催你，该睡了！该睡了！该睡了！每隔5分钟催1次，这要能睡得着那就是见了鬼了，往往是适得其反，换来越“想睡”越睡不着的遭遇。</p>
-<p>所以失眠的问题出在：你只是“想睡”，心理活动上的“想睡”，身体却没有任何“想睡”的意思。“想”大大多于“自然的困意”，于是失眠开始了。</p>
-<p>印度哲学家奥修也说，「人们认为他们无法入睡，人们认为他们的身体没有什么不对劲。他们的身体并没有什么不对劲。他们的身体跟以前一样健康，事实上比以前更健康，但是有某些东西深深地进入了他们的头脑：他们认为他们必须去做每一件事，然而睡觉时不能够被做的，那不是“做”的一部分，你必须“让”它睡，你无法做它，它不是一项行动；睡觉是自动来临的，它是一种发生。」</p>
-<p>平日里的生活太紧绷了，太不自然了，遇到睡觉这样“自然”的事情，紧绷自然成了恶性循环的罪魁祸首。</p>
-<p>放不下的事情太多了，郁结在脑海各个角落，白天，尚有其他事务填充大脑，暂时掩盖放不下的种种。一到夜深人静，身体、心灵卸下了一切防备，无处安放的思绪开始翻滚绞痛，不安宁了。</p>
-<p>想睡+紧绷+放不下的种种，真乃失眠标配三件套了。</p>
-<p>既然想睡又睡不了，那就别睡了；既然紧绷又放不下，那就做点别的事情，把不安分的因素赶走。</p>
-<p>不妨拿起一本书看看。《存在与虚无》固然算得上催眠利器，但我估计你没看几个字思绪就跑到九霄云外了；《2666》固然能用大量离奇的情节满足你的猎奇心理，但我估计你的耐心遇到一整块一整块、一大段一大段、就是不另起一行的文字时，便默默认输了；《肉蒲团秘本》固然吸引人，但我怕你看了会做别的事，让人兴奋的事。</p>
-<p>就看些带点温度的小说。像什么，《牧羊少年奇幻之旅》《通向蜘蛛巢的小径》《安吉拉·卡特的精怪故事集》《吉卜林动物小说》《泛若不系之舟》《快乐王子》《厨房》《罗生门》《面纱》《蜘蛛女之吻》《根西岛文学与土豆皮馅饼俱乐部》《一个人的朝圣》，就挺好的。</p>
-<p>最好不要用手机或Kindle看，以免刚一睡着，手一松，利器把自己砸醒……</p>
-<p>你开始慢慢放下种种，思绪化作一小束精神体，跟随作者的笔触进入故事的脉络，在里面惬意游走，徜徉，偶尔开个小差，再平缓地拉回来，累了，文字自然不会强拽着你继续翱翔，它在你思绪渐渐停滞的时候，便欣然放手。你只需不费力气地放下书本，顺应身体的信号，便安然入眠了。</p>
-<p>“数羊”的本质也是如此——不让你胡思乱想，打断你过于猛烈的“想睡”的念头。不过你要是边数边想着这羊的品种、长什么样，这羊毛的手感、软不软，这羊的肥瘦、好吃不好吃，越数越兴奋，那就没救了。</p>
-<p>一句话，让身体重回“自然”，丢掉细枝末节，忘却庸人自扰。<strong>一切由宁静而生，一切归于宁静。</strong></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">失眠</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/sleep/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-django-celery-redis" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/django-celery-redis/">django celery redis</a>
-    </h1>
-  
-
-        
-        <a href="/post/django-celery-redis/" class="archive-article-date">
-  	<time datetime="2017-07-18T06:42:51.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-18</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>这篇真的好全啊。。。</p>
-<p><a href="http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html" target="_blank" rel="external">http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html</a></p>
-<p>这里就不禁想好好讲讲celery，其实是 Advanced Message Queueing Protocol (AMQP) 了。我自己也是参考了文章 <a href="https://www.abhishek-tiwari.com/amqp-rabbitmq-and-celery-a-visual-guide-for-dummies/" target="_blank" rel="external">https://www.abhishek-tiwari.com/amqp-rabbitmq-and-celery-a-visual-guide-for-dummies/</a> 和 <a href="https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html" target="_blank" rel="external">https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html</a></p>
-<p>再次感谢网络上这么多大神分享的这么多好的文章。很多原理都是在网上看了很多文章琢磨和理解透彻的。</p>
-<h4 id="生产者"><a href="#生产者" class="headerlink" title="生产者"></a>生产者</h4><p>生产者就是主业务服务里，产生异步消息或者任务的角色。生产者产生消息任务以后就需要下一个角色 Broker来发挥作用了。</p>
-<h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>Broker由 Exchange，Binding 和 Queue 组成。（我们最早用redis做Broker。）Broker主要用来接收和存储生产者发出的消息任务 —— Exchange会接收消息任务，通过Bindings等因素分发给某些Queue，然后消息任务会存储在被选择的Queue里。</p>
-<p>Exchange是一个消息分发代理，会根据Bindings，消息的 header attributes, routing keys，决定什么消息任务进什么队列。</p>
-<p>Binding其实就是Exchange和Queue之间的link。</p>
-<p>我们可以配置多个Queue，每个队列有自己的binding key。</p>
-<p>当一条消息任务发来后，这个任务会被打上一个routing key。而Exchange会把消息任务分发给和这个routing key完全一致的binding key的队列。</p>
-<h4 id="消费者"><a href="#消费者" class="headerlink" title="消费者"></a>消费者</h4><p>消费者由很多Workers组成。每个worker也可以起多个并发进程。每个worker会根据自己被配置的routing key对应的Queue去获取任务并执行。</p>
-<h4 id="Exchange-Types"><a href="#Exchange-Types" class="headerlink" title="Exchange Types"></a>Exchange Types</h4>
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">django</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">celery</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/django-celery-redis/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-django-cache" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/django-cache/">Django Cache 的使用</a>
-    </h1>
-  
-
-        
-        <a href="/post/django-cache/" class="archive-article-date">
-  	<time datetime="2017-04-23T13:38:38.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-04-23</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>本文主要来源于<a href="https://docs.djangoproject.com/en/1.11/topics/cache/" target="_blank" rel="external">django官方文档</a></p>
-<p>原理是：given a URL, try finding that page in the cache<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> the page is in the cache:</div><div class="line">    <span class="keyword">return</span> the cached page</div><div class="line"><span class="keyword">else</span>:</div><div class="line">    generate the page</div><div class="line">    save the generated page in the cache (<span class="keyword">for</span> next time)</div><div class="line">    <span class="keyword">return</span> the generated page</div></pre></td></tr></table></figure></p>
-<p>先需要几步setup，决定cache存在哪，比如存在数据库，或文件系统，或内存。但是因为配置内容太多，觉得放在文章后面额部分。<a href="#memcached">点此调到后方cache配置</a></p>
-<h2 id="所以这里先说一下我们实际写代码中最常用的用法-——-cache一个page"><a href="#所以这里先说一下我们实际写代码中最常用的用法-——-cache一个page" class="headerlink" title="所以这里先说一下我们实际写代码中最常用的用法 —— cache一个page"></a>所以这里先说一下我们实际写代码中最常用的用法 —— cache一个page</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.views.decorators.cache <span class="keyword">import</span> cache_page, never_cache</div><div class="line"></div><div class="line"><span class="meta">@cache_page(60 * 15)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">my_view</span><span class="params">(request)</span>:</span></div></pre></td></tr></table></figure>
-<p>cache_page 中传入的参数是timeout，单位是秒，源码当中核心就是</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">cache_page</span><span class="params">(*args, **kwargs)</span>:</span></div><div class="line">    <span class="keyword">return</span> decorator_from_middleware_with_args(CacheMiddleware)(</div><div class="line">        cache_timeout=cache_timeout, cache_alias=cache_alias, key_prefix=key_prefix</div><div class="line">    )</div></pre></td></tr></table></figure>
-<p>实际发现如果设置了max_age，max_age的级别更高会覆盖timeout，所以普通使用的时候只设置timeout就好（我们猜想这么设计是为了给浏览器的数据和后台server cache失效时间要一致，因为max-age应该是给浏览器用的）</p>
-<p>(此处源码在 django/middleware/cache.py:)<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UpdateCacheMiddleware</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_response</span><span class="params">(self, request, response)</span>:</span></div><div class="line">        <span class="string">'''此处省略很多代码'''</span></div><div class="line">        timeout = get_max_age(response)</div><div class="line">        <span class="keyword">if</span> timeout <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">            timeout = self.cache_timeout</div></pre></td></tr></table></figure></p>
-<p>never_cache也是很好用的一个decorator，相当于把各种参数都设置成不缓存，就是以下效果 </p>
-<p>‘cache-control’: ‘no-cache’</p>
-<p><br></p>
-<h2 id="还可以较底层的使用方法"><a href="#还可以较底层的使用方法" class="headerlink" title="还可以较底层的使用方法"></a>还可以较底层的使用方法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.core.cache <span class="keyword">import</span> caches</div><div class="line">cache1 = caches[<span class="string">'myalias'</span>]</div></pre></td></tr></table></figure>
-<p>这样就得到了一个cache的instance。如果不想指明，可以用默认的cache instance：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.core.cache <span class="keyword">import</span> cache</div></pre></td></tr></table></figure></p>
-<p>这个cache instance相当于是caches[‘default’]。<br>cache的数据结构就是键值对儿，所以用法是 set(key, value, timeout) 和 get(key)。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cache.set(<span class="string">'my_key'</span>, <span class="string">'my_value'</span>, <span class="number">30</span>)</div><div class="line">cache.get(<span class="string">'my_key'</span>)</div></pre></td></tr></table></figure></p>
-<p>cache还有很多方法，比如add，get_or_set，delete等，具体都可以见Django官方文档。</p>
-<p>当一个key并不存在的时候，cache.get(key)会返回None。因为这样，官方强烈建议大家不要在cache里存值本身就为None的条目，因为这样拿到None的时候会混淆。</p>
-<h3 id="Cache-key"><a href="#Cache-key" class="headerlink" title="Cache key"></a>Cache key</h3><p>为了区分不同的环境或者服务器等（developping env, production env）可以给cache加个前缀 - settings里cache的配置加上KEY_PREFIX。<br>每一个cache还可以有版本，比如<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cache.set(<span class="string">'my_key'</span>, <span class="string">'hello world!'</span>, version=<span class="number">2</span>)</div><div class="line">cache.get(<span class="string">'my_key'</span>, version=<span class="number">2</span>)</div></pre></td></tr></table></figure></p>
-<p>综合来说要得到一个cache完成的key，源码是<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">make_key</span><span class="params">(key, key_prefix, version)</span>:</span></div><div class="line">    <span class="keyword">return</span> <span class="string">':'</span>.join([key_prefix, str(version), key])</div></pre></td></tr></table></figure></p>
-<p>可以写自己自定义得到解析cache key的方法，比如把key做哈希</p>
-<p><br></p>
-<h3 id="Cache的配置有以下几种"><a href="#Cache的配置有以下几种" class="headerlink" title="Cache的配置有以下几种"></a>Cache的配置有以下几种</h3><h2 id="Memcached"><a href="#Memcached" class="headerlink" title="Memcached"></a>Memcached</h2><p>memcached 的所有数据都会存在内存上，所以不会出现向数据库或文件系统溢出的问题。它会运行在后台（类似守护进程）并被分配一定量的ram（内存）<br>可以起多个instance并且配置：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">CACHES = &#123;</div><div class="line">    <span class="string">'default'</span>: &#123;</div><div class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django.core.cache.backends.memcached.MemcachedCache'</span>,</div><div class="line">        <span class="string">'LOCATION'</span>: [</div><div class="line">            <span class="string">'172.19.26.240:11211'</span>,</div><div class="line">            <span class="string">'172.19.26.242:11212'</span>,</div><div class="line">            <span class="string">'172.19.26.244:11213'</span>,</div><div class="line">        ]</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>缺点是没有数据持久性，</p>
-<h2 id="Database-caching"><a href="#Database-caching" class="headerlink" title="Database caching"></a>Database caching</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">CACHES = &#123;</div><div class="line">    <span class="string">'default'</span>: &#123;</div><div class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django.core.cache.backends.db.DatabaseCache'</span>,</div><div class="line">        <span class="string">'LOCATION'</span>: <span class="string">'my_cache_table'</span>,</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>用数据库做cache的时候必须先</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">python manage.py createcachetable</div></pre></td></tr></table></figure>
-<p>表名就是location的值</p>
-<h2 id="Filesystem-caching"><a href="#Filesystem-caching" class="headerlink" title="Filesystem caching"></a>Filesystem caching</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">CACHES = &#123;</div><div class="line">    <span class="string">'default'</span>: &#123;</div><div class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django.core.cache.backends.filebased.FileBasedCache'</span>,</div><div class="line">        <span class="string">'LOCATION'</span>: <span class="string">'/var/tmp/django_cache'</span>,</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>location should be an absolute path</p>
-<h2 id="Local-memory-caching"><a href="#Local-memory-caching" class="headerlink" title="Local-memory caching"></a>Local-memory caching</h2><p>如果没有任何setting，这个cache是default的。 如果没有足够的性能去用memcached，可以选择这个。它的instance基于单个进程，并且是线程安全的。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">CACHES = &#123;</div><div class="line">    <span class="string">'default'</span>: &#123;</div><div class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django.core.cache.backends.locmem.LocMemCache'</span>,</div><div class="line">        <span class="string">'LOCATION'</span>: <span class="string">'unique-snowflake'</span>,</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>因为跨进程是不可能的，这种最好适用于开发环境，而不是生产环境</p>
-<h2 id="Dummy-caching"><a href="#Dummy-caching" class="headerlink" title="Dummy caching"></a>Dummy caching</h2><p>啥都不干。。。只是可以用所有的cache接口。专为了开发环境。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">CACHES = &#123;</div><div class="line">    <span class="string">'default'</span>: &#123;</div><div class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django.core.cache.backends.dummy.DummyCache'</span>,</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p><br></p>
-<h2 id="Settings中Middleware的顺序"><a href="#Settings中Middleware的顺序" class="headerlink" title="Settings中Middleware的顺序"></a>Settings中Middleware的顺序</h2><p>最后说一下在settings中，如果要用cache的middleware，需要注意放置的顺序。</p>
-<p>我们常看到settings中的middleware settings是类似这样：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">MIDDLEWARE_CLASSES = (</div><div class="line">    <span class="string">'django.middleware.cache.UpdateCacheMiddleware'</span>,</div><div class="line">    <span class="string">'django.contrib.sessions.middleware.SessionMiddleware'</span>,</div><div class="line">    <span class="string">'corsheaders.middleware.CorsMiddleware'</span>,</div><div class="line">    <span class="string">'django.middleware.common.CommonMiddleware'</span>,</div><div class="line">    <span class="string">'django.middleware.csrf.CsrfViewMiddleware'</span>,</div><div class="line">    <span class="string">'django.contrib.auth.middleware.AuthenticationMiddleware'</span>,</div><div class="line">    <span class="string">'django.contrib.auth.middleware.SessionAuthenticationMiddleware'</span>,</div><div class="line">    <span class="string">'django.contrib.messages.middleware.MessageMiddleware'</span>,</div><div class="line">    <span class="string">'django.middleware.clickjacking.XFrameOptionsMiddleware'</span>,</div><div class="line">    <span class="string">'django.middleware.security.SecurityMiddleware'</span>,</div><div class="line">    <span class="string">'django.middleware.cache.FetchFromCacheMiddleware'</span>,</div><div class="line">)</div></pre></td></tr></table></figure></p>
-<p>首先要明确middleware的执行规则 - <a href="https://docs.djangoproject.com/en/1.11/topics/http/middleware/" target="_blank" rel="external">官方文档1.11</a></p>
-<p>Middleware是Django的request/response的钩子，在request请求中，执行到view之前，middleware的执行顺序是和代码中一样从上至下的。而在开始响应response的时候，middleware的执行是从下至上的（所谓的”the way back”）。如果某一层要短路的话，之后的层都不会接到任何request或response。官方文档中把middleware这种顺序比喻成一个洋葱从最外层到最内层再返回，如果一个钩子执行到了洋葱的某一层就往外返回了，洋葱里面的那些层是完全无感知的。</p>
-<p>再看回cache相关的middleware，主要是django.middleware.cache.UpdateCacheMiddleware和django.middleware.cache.FetchFromCacheMiddleware。UpdateCacheMiddleware是在response层面执行，所以要确保它在一些会修改header的middleware之后运行，所以一般把它放最上面。而FetchFromCacheMiddleware是在request层面执行，它一样需要在可能更改header的middleware之后运行，所以可以把它放在最下面。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">django</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">cache</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/django-cache/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -837,6 +764,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">cors</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
@@ -853,18 +784,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">io</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">socket</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">hexo</a>
               </li>
              
@@ -873,11 +792,63 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">io</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">socket</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">cap</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">base</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">distribution</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">sql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">select</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">poll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">epoll</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">wsgi</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">gunicorn</a>
               </li>
              
               <li class="article-tag-list-item">
