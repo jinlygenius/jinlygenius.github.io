@@ -2,6 +2,8 @@
 title: python3-multiextends
 date: 2019-06-05 17:23:41
 tags:
+- python3
+- multiextends
 ---
 
 
