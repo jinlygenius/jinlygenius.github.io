@@ -38,7 +38,7 @@ tags:
 
 是不是感觉清楚多了，完全明白了现在的服务器允许跨域为什么是安全的了。
 
-#
+
 **小伙伴们又问了，为什么现在都流行用token比如JWT取代session的方式登录呢？**
 
 ### token VS session —— 
@@ -46,7 +46,7 @@ tags:
 
 不过我再一次naive了。实际上token在前端对比session_id还有另一个好处，就是顺便解决了csrf跨站请求伪造问题。当浏览器通过form表单提交服务器的时候，cookie是被自动带上的，且不遵循同源原则。也就是说，如果恶意网站Z的js通过form提交网站A的服务器，且篡改了提交数据，且登录A是通过session_id存cookie的方式，就可以达到文章开头提到的转钱给不法账户的效果。这个时候通常的解决方法是通过form携带csrf token，也就是表单每次提交的时候，都需要携带A服务器分发的一个csrf token，后端会校验csrf token是否有效。这样就能避免csrf攻击了，因为Z的js是无法自己获取到一个新的有效的csrf token的。那么，如果不是用session的登录方式，而是用token authorization的方式，表单提交的时候自动带上的cookie就没用了。原理其实就类似csrf token，请求需要把JWT token从local storage取出来放在请求header里。这样流程就回到了文章上述的各流程中，也就避免了csrf攻击。所以即使对前端来说，token登录方式也比session的登录方式更有优势。
 
-#
+
 ### django-cors-headers
 最后再看一下服务器允许跨域是怎么实现的。首先在settings.py 里配置 CORS_ORIGIN_ALLOW_ALL = True 表示允许跨域。然后查看代码 corsheaders/middleware.py 中 CorsMiddleware 中
 
