@@ -244,10 +244,9 @@ var _hmt = _hmt || [];
 </li>
 </ol>
 <p>是不是感觉清楚多了，完全明白了现在的服务器允许跨域为什么是安全的了。</p>
-<p>#<br><strong>小伙伴们又问了，为什么现在都流行用token比如JWT取代session的方式登录呢？</strong></p>
+<p><strong>小伙伴们又问了，为什么现在都流行用token比如JWT取代session的方式登录呢？</strong></p>
 <h3 id="token-VS-session-——"><a href="#token-VS-session-——" class="headerlink" title="token VS session ——"></a>token VS session ——</h3><p>作为一个后端，我认为token对后端的改进是比较大的，因为如果用session的话，数据库里需要存session表，根据前端发来的session_id查表才能获取到用户。而token比如JWT，分发之后就不需要再储存了，校验的时候只需要用secret加盐校验是自己分发出去的有效token，再从token payload 取出用户id就可以了。而对前端来说，存session_id和token，都是两个字符串，感觉没什么区别。</p>
 <p>不过我再一次naive了。实际上token在前端对比session_id还有另一个好处，就是顺便解决了csrf跨站请求伪造问题。当浏览器通过form表单提交服务器的时候，cookie是被自动带上的，且不遵循同源原则。也就是说，如果恶意网站Z的js通过form提交网站A的服务器，且篡改了提交数据，且登录A是通过session_id存cookie的方式，就可以达到文章开头提到的转钱给不法账户的效果。这个时候通常的解决方法是通过form携带csrf token，也就是表单每次提交的时候，都需要携带A服务器分发的一个csrf token，后端会校验csrf token是否有效。这样就能避免csrf攻击了，因为Z的js是无法自己获取到一个新的有效的csrf token的。那么，如果不是用session的登录方式，而是用token authorization的方式，表单提交的时候自动带上的cookie就没用了。原理其实就类似csrf token，请求需要把JWT token从local storage取出来放在请求header里。这样流程就回到了文章上述的各流程中，也就避免了csrf攻击。所以即使对前端来说，token登录方式也比session的登录方式更有优势。</p>
-<p>#</p>
 <h3 id="django-cors-headers"><a href="#django-cors-headers" class="headerlink" title="django-cors-headers"></a>django-cors-headers</h3><p>最后再看一下服务器允许跨域是怎么实现的。首先在settings.py 里配置 CORS_ORIGIN_ALLOW_ALL = True 表示允许跨域。然后查看代码 corsheaders/middleware.py 中 CorsMiddleware 中</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">process_response</span><span class="params">(self, request, response)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line"><span class="string">        Add the respective CORS headers</span></div><div class="line"><span class="string">        """</span></div><div class="line">        enabled = getattr(request, <span class="string">"_cors_enabled"</span>, <span class="keyword">None</span>)</div><div class="line">        <span class="keyword">if</span> enabled <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">            enabled = self.is_enabled(request)</div><div class="line"></div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> enabled:</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        patch_vary_headers(response, [<span class="string">"Origin"</span>])</div><div class="line"></div><div class="line">        origin = request.META.get(<span class="string">"HTTP_ORIGIN"</span>)</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> origin:</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        <span class="comment"># todo: check hostname from db instead</span></div><div class="line">        url = urlparse(origin)</div><div class="line"></div><div class="line">        <span class="keyword">if</span> conf.CORS_ALLOW_CREDENTIALS:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_CREDENTIALS] = <span class="string">"true"</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (</div><div class="line">            <span class="keyword">not</span> conf.CORS_ORIGIN_ALLOW_ALL</div><div class="line">            <span class="keyword">and</span> <span class="keyword">not</span> self.origin_found_in_white_lists(origin, url)</div><div class="line">            <span class="keyword">and</span> <span class="keyword">not</span> self.check_signal(request)</div><div class="line">        ):</div><div class="line">            <span class="keyword">return</span> response</div><div class="line"></div><div class="line">        <span class="keyword">if</span> conf.CORS_ORIGIN_ALLOW_ALL <span class="keyword">and</span> <span class="keyword">not</span> conf.CORS_ALLOW_CREDENTIALS:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_ORIGIN] = <span class="string">"*"</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_ORIGIN] = origin</div><div class="line"></div><div class="line">        <span class="keyword">if</span> len(conf.CORS_EXPOSE_HEADERS):</div><div class="line">            response[ACCESS_CONTROL_EXPOSE_HEADERS] = <span class="string">", "</span>.join(</div><div class="line">                conf.CORS_EXPOSE_HEADERS</div><div class="line">            )</div><div class="line"></div><div class="line">        <span class="keyword">if</span> request.method == <span class="string">"OPTIONS"</span>:</div><div class="line">            response[ACCESS_CONTROL_ALLOW_HEADERS] = <span class="string">", "</span>.join(conf.CORS_ALLOW_HEADERS)</div><div class="line">            response[ACCESS_CONTROL_ALLOW_METHODS] = <span class="string">", "</span>.join(conf.CORS_ALLOW_METHODS)</div><div class="line">            <span class="keyword">if</span> conf.CORS_PREFLIGHT_MAX_AGE:</div><div class="line">                response[ACCESS_CONTROL_MAX_AGE] = conf.CORS_PREFLIGHT_MAX_AGE</div><div class="line"></div><div class="line">        <span class="keyword">return</span> response</div></pre></td></tr></table></figure>
 <p>可以看到，如果设置允许跨域，response[ACCESS_CONTROL_ALLOW_ORIGIN] = “*“ 这段代码会设置header中的ACCESS_CONTROL_ALLOW_ORIGIN为*，和我们实际查看的response header对应上了。</p>
@@ -826,11 +825,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">cors</a>
+                <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">django</a>
+                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">cap</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">base</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">distribution</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -842,7 +853,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+                <a href="javascript:void(0)" class="js-tag color5">cors</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -866,18 +877,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">cap</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">base</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">distribution</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
@@ -886,11 +885,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">python3</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -906,15 +901,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">wsgi</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">gunicorn</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">失眠</a>
               </li>
             
             <div class="clearfix"></div>
