@@ -1,3 +1,3 @@
 # jinlygenius.github.io
 
-A personal blog - [blog.sunshuhan.com](http://blog.sunshuhan.com)
+A personal blog - [sunshuhan.com](http://sunshuhan.com)
