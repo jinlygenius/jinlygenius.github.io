@@ -203,6 +203,170 @@ var _hmt = _hmt || [];
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-optimize-sql" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/post/optimize-sql/">SQL 调优</a>
+    </h1>
+  
+
+        
+        <a href="/post/optimize-sql/" class="archive-article-date">
+  	<time datetime="2019-04-05T03:50:02.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-04-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这两天公司一直在招人，CTO经常问面试者的问题：怎么sql调优？之后大家讨论，感觉sql调优的方法太多了，这里总结一下</p>
+<p>因为我们主要用MySQL（InnoDB），先砸一下MySQL的官方文档</p>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/optimization.html" target="_blank" rel="external">https://dev.mysql.com/doc/refman/8.0/en/optimization.html</a></p>
+<h4 id="1-索引相关"><a href="#1-索引相关" class="headerlink" title="1. 索引相关"></a>1. 索引相关</h4><ul>
+<li><p>索引是面试者最容易想到的答案。我们都知道，字段加了索引以后，在 where, join, order by 字段的时候都会变得非常快。</p>
+</li>
+<li><p>如果where条件后过滤的是 is null</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span> <span class="keyword">is</span> <span class="literal">null</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这个时候即使字段加了索引，搜索 null 值会让数据库引擎不使用索引。所以例子中尽量填充 count=0 ，不要留 null 值。上面例子将变成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span> = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<ul>
+<li>尽量不要用 &lt;&gt; 或 != ，因为这些也会导致数据库引擎不使用索引，使用全表扫描</li>
+<li>同样的原因，选择一个范围的时候，能用 between 尽量都用 between</li>
+<li>用 exists 代替 in ，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, <span class="built_in">number</span> <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_order</div><div class="line"><span class="keyword">where</span> <span class="keyword">id</span> <span class="keyword">in</span></div><div class="line">(</div><div class="line">    <span class="keyword">select</span> order_id <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_aftersale</div><div class="line">)</div><div class="line">;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>最好改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> o.id, o.number <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_order o</div><div class="line"><span class="keyword">where</span> <span class="keyword">exists</span></div><div class="line">(</div><div class="line">    <span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> sparrow_test_0903.sparrow_orders_aftersale a</div><div class="line">    <span class="keyword">where</span> a.order_id=o.id</div><div class="line">)</div><div class="line">;</div></pre></td></tr></table></figure></p>
+<p>同理，用 not exists 代替 not in</p>
+<ul>
+<li>关于 like，如果全模糊查找 “%test%” 肯定是要全表扫描的。如果只有右模糊查找 “test%” 是可以使用索引的。而左模糊索引就用不了了</li>
+<li>其实也是同样的原理，（对MySQL InnoDB）不要<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>要达成同样的目的一般使用<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="number">1</span>) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure></p>
+<p>因为一般第一列默认都是主键，都有索引。这里补充一下，如果<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="keyword">id</span>) <span class="keyword">from</span> mytable</div></pre></td></tr></table></figure></p>
+<p>会过滤掉是null的值，速度会变慢很多</p>
+<ul>
+<li>不要对过滤字段本身做计算，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span>/<span class="number">2</span>=<span class="number">10</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这样会导致不用索引。应该改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">count</span>=<span class="number">10</span>*<span class="number">2</span></div></pre></td></tr></table></figure></p>
+<ul>
+<li>同样的道理，如果 where 筛选的字段用了函数，比如<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">substring</span>(<span class="keyword">name</span>, <span class="number">1</span>, <span class="number">3</span>)=<span class="string">'aaa'</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>索引也用不了。应该改成<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> mytable <span class="keyword">where</span> <span class="keyword">name</span> <span class="keyword">like</span> <span class="string">'aaa%'</span></div></pre></td></tr></table></figure></p>
+<ul>
+<li>实际执行插入和删除大量数据的时候（大事务操作），尽可能拆分任务，不要一次执行全量，以防锁表时间过长</li>
+<li>确认删除全表时，先 truncate，再 drop</li>
+<li>on, where, having 都可以过滤。on 最先执行，where其次，然后再已经计算出所有结果之后，having才会起作用。所以能用where尽量不用having。如果是单边的左或右连接能用on就不用where。</li>
+</ul>
+<h4 id="2-其他操作"><a href="#2-其他操作" class="headerlink" title="2. 其他操作"></a>2. 其他操作</h4><ul>
+<li>当只要m行数据时使用 LIMIT m，比如 LIMIT 1</li>
+<li>创建一些中间表，把大量反复查询多表并且没有很高时效要求（或一段时间数据不发生变化）的结果存在中间表里。再基于这些中间表查询</li>
+<li>存储过程</li>
+</ul>
+<h4 id="4-架构上的改进"><a href="#4-架构上的改进" class="headerlink" title="4. 架构上的改进"></a>4. 架构上的改进</h4><ul>
+<li>查看数据库最大连接数，查看分配的CPU，内存空间（比如临时表等都会占用内存）</li>
+<li>增加线程缓存大小。如果希望服务器每秒接收数百个连接请求，那么应该将thread_cache_size设置的足够高，以便大多数新连接可以使用缓存线程。</li>
+<li>从内存读取数据。设置innodb_buffer_pool_size。检查当前的配置是否合理<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> <span class="keyword">STATUS</span> <span class="keyword">LIKE</span> <span class="string">'innodb_buffer_pool_pages_%'</span>;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>然后查看结果里的 Innodb_buffer_pool_pages_free 值，如果为0说明缓存不够了</p>
+<ul>
+<li>读写分离。大量的只读操作都在读库，没有任何锁，速度非常快</li>
+<li>查看慢sql日志：/var/log/mysql/log-slow-queries.log</li>
+</ul>
+<h4 id="5-Django相关"><a href="#5-Django相关" class="headerlink" title="5. Django相关"></a>5. Django相关</h4><p>我们平时大量使用 Django 的 ORM，效率高的写法很重要。附一下Django的官方文档 <a href="https://docs.djangoproject.com/en/2.2/topics/db/optimization/" target="_blank" rel="external">https://docs.djangoproject.com/en/2.2/topics/db/optimization/</a>  官方文档写的非常全面。以下记录一些自己跳过的坑。</p>
+<ul>
+<li>批量更新数据的时候，如果是一条一条更新，对数据库会有多次I/O，导致非常慢。尽量选择一次更新多条。有一种简单的情况是所有条目要更新的字段内容是一样的时候<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Entry.objects.select_related().filter(blog=b).update(headline=<span class="string">'Everything is the same'</span>)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这种时候ORM里的save()方法不会被执行。如果想要执行的话需要手动调用一下<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> item <span class="keyword">in</span> my_queryset:</div><div class="line">    item.save()</div></pre></td></tr></table></figure></p>
+<p>但是大多数时候更新多条数据的每条数据值可能是不同的。如果是有规律的，比如是在原有值的变化，可以<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.db.models <span class="keyword">import</span> F</div><div class="line">Entry.objects.all().update(n_pingbacks=F(<span class="string">'n_pingbacks'</span>) + <span class="number">1</span>)</div></pre></td></tr></table></figure></p>
+<p>如果没有规律，原生sql也只能执行多条的，ORM就没有办法更优化了，只能多次I/O。</p>
+<ul>
+<li><p>同理，减少I/O，创建多条尽量用 bulk_create</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># insert multiple items in ProductPromotionMain</span></div><div class="line"><span class="keyword">for</span> product <span class="keyword">in</span> products[start_pos:end_pos]:</div><div class="line">    product_id = product.id</div><div class="line">    productpromotion_data = &#123;</div><div class="line">        <span class="string">"promotionmain_id"</span>: self.promotionmain_id,</div><div class="line">        <span class="string">"product_id"</span>: product.id,</div><div class="line">        <span class="string">"promotion_type"</span>: promotion_type,</div><div class="line">        <span class="string">"start_time"</span>: promotionmain.start_time,</div><div class="line">        <span class="string">"end_time"</span>: promotionmain.end_time,</div><div class="line">    &#125;</div><div class="line">    productpromotions.append(ProductPromotionMain(**productpromotion_data))</div><div class="line"></div><div class="line"><span class="keyword">if</span> len(productpromotions) &gt; <span class="number">0</span>:</div><div class="line">    ProductPromotionMain.objects.bulk_create(productpromotions)</div></pre></td></tr></table></figure>
+</li>
+<li><p>当需要很多张表join以后的多字段值的时候，正常用Django的ORM获取，需要每张表都分别获取再组合，或者是用Model里property的方式把其他表相关字段拿过来放某个主表里，然后通过ORM获取这个主表对象，连带获取到所有相关表数据。有的时候属性会造成一些重复sql，比如</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(models.Model)</span>:</span></div><div class="line">    id = models.Integerfield()</div><div class="line">    aaa = models.Charfield()</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">bbb</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">return</span> B.objects.get(a_id=self.id)</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">ccc</span><span class="params">(self)</span>:</span></div><div class="line">        bbb = self.bbb</div><div class="line">        <span class="keyword">return</span> C.objects.get(b_id=bbb.id)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>需要返回所有字段<br><figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="attr">"id"</span>: <span class="number">1</span>,</div><div class="line">    <span class="attr">"aaa"</span>: <span class="string">"my str"</span>,</div><div class="line">    <span class="attr">"bbb"</span>: &#123;</div><div class="line">        <span class="attr">"id"</span>: <span class="number">10</span>,</div><div class="line">        <span class="attr">"a_id"</span>: <span class="number">1</span></div><div class="line">    &#125;,</div><div class="line">    <span class="attr">"ccc"</span>: &#123;</div><div class="line">        <span class="attr">"id"</span>: <span class="number">100</span>,</div><div class="line">        <span class="attr">"b_id"</span>: <span class="number">10</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个时候，数据库会执行两次<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, a_id <span class="keyword">from</span> B <span class="keyword">where</span> a_id=<span class="number">10</span></div></pre></td></tr></table></figure></p>
+<p>进而造成了重复查询。查看官方文档发现，这种情况完全可以使用 @cached_property 。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django.utils.functional <span class="keyword">import</span> cached_property</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(models.Model)</span>:</span></div><div class="line">    id = models.Integerfield()</div><div class="line">    aaa = models.Charfield()</div><div class="line"></div><div class="line"><span class="meta">    @cached_property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">bbb</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">return</span> B.objects.get(a_id=self.id)</div><div class="line"></div><div class="line"><span class="meta">    @property</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">ccc</span><span class="params">(self)</span>:</span></div><div class="line">        bbb = self.bbb</div><div class="line">        <span class="keyword">return</span> C.objects.get(b_id=bbb.id)</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p>上述场景还可以直接使用 raw sql，可以直接在sql语句里join，也会变快</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">result = A.objects.raw(<span class="string">'SELECT a.id, a.aaa, b.id, c.id FROM A a left join B on a.id=b.a_id left join C on b.id=c.b_id'</span>)</div></pre></td></tr></table></figure>
+</li>
+<li><p>queryset很大的时候，当需要轮询处理，应该使用iterator，否则全部加载很消耗内存</p>
+</li>
+<li>不要用len(queryset)，应该用 queryset.count()</li>
+<li>if some_queryset.exists() 比 if some_queryset 性能好很多，能用exists()就多用. 这些原理都和上述原生sql要注意的地方类似</li>
+</ul>
+<h5 id="参考文献-文章"><a href="#参考文献-文章" class="headerlink" title="参考文献/文章"></a>参考文献/文章</h5><p><a href="https://www.cnblogs.com/yunfeifei/p/3850440.html" target="_blank" rel="external">https://www.cnblogs.com/yunfeifei/p/3850440.html</a><br><a href="https://blog.csdn.net/dev_csdn/article/details/78721426" target="_blank" rel="external">https://blog.csdn.net/dev_csdn/article/details/78721426</a><br><a href="https://zhuanlan.zhihu.com/p/39038788" target="_blank" rel="external">https://zhuanlan.zhihu.com/p/39038788</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">mysql</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">sql</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/post/optimize-sql/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-hexo部署" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -582,68 +746,6 @@ debug1: Exit status 1
 
 
   
-    <article id="post-django-gunicorn" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/post/django-gunicorn/">django_gunicorn</a>
-    </h1>
-  
-
-        
-        <a href="/post/django-gunicorn/" class="archive-article-date">
-  	<time datetime="2017-08-28T10:16:28.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-28</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/post/django-gunicorn/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -673,7 +775,7 @@ debug1: Exit status 1
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2019 Ella
+    		&copy; 2020 Ella
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -756,22 +858,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">acid</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">django</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">cache</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">cap</a>
               </li>
              
@@ -784,11 +870,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">celery</a>
+                <a href="javascript:void(0)" class="js-tag color2">django</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+                <a href="javascript:void(0)" class="js-tag color1">cache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">mysql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">acid</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -804,10 +898,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">io</a>
               </li>
              
@@ -816,11 +906,27 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jwt</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">nginx</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">sql</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">python</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -840,11 +946,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">python3</a>
+                <a href="javascript:void(0)" class="js-tag color2">celery</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">multiextends</a>
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
               <li class="article-tag-list-item">
